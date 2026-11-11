@@ -9,6 +9,7 @@ type AppShellProps = { children: ReactNode };
 
 const commands = [
   { label: 'Go to overview', detail: 'Your NEXORA home', href: '/' },
+  { label: 'Open Connect', detail: 'Private messages and groups', href: '/connect' },
   { label: 'Open focus room', detail: 'Jump to the local focus timer', href: '/#focus' },
   { label: 'View product map', detail: 'See what is planned', href: '/#roadmap' },
   { label: 'Sign in', detail: 'Open your private workspace', href: '/login' },
@@ -120,6 +121,11 @@ export function AppShell({ children }: AppShellProps) {
           <Link className="nav-link" href="/#focus">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3" /><path d="M12 2v3m10 7h-3M5 12H2m10 10v-3" /></svg>
             <span>Focus room</span>
+            <span className="nav-link-arrow" aria-hidden="true">↗</span>
+          </Link>
+          <Link className={`nav-link${pathname.startsWith('/connect') ? ' nav-link-active' : ''}`} href="/connect">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.2-.7L4 20l1.7-4.1A7.5 7.5 0 1 1 20 11.5Z" /><path d="M8 11h8m-8 3h5" /></svg>
+            <span>Connect</span>
             <span className="nav-link-arrow" aria-hidden="true">↗</span>
           </Link>
         </nav>

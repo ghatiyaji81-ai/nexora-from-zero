@@ -3,7 +3,7 @@ import { createHmac } from 'node:crypto';
 import { AuthRateLimit } from '@/models/auth-rate-limit';
 import { getRateLimitSecret } from '@/lib/server/env';
 
-const WINDOW_MS = 15 * 60 * 1000;
+const AUTH_WINDOW_MS = 15 * 60 * 1000;
 
 function getClientAddress(request: Request) {
   const trustedProxyAddress = request.headers.get('x-real-ip')
@@ -11,19 +11,19 @@ function getClientAddress(request: Request) {
   return trustedProxyAddress || 'unknown';
 }
 
-async function incrementBucket(scope: string) {
+async function incrementBucket(scope: string, windowMs: number) {
   const now = Date.now();
-  const bucketStart = Math.floor(now / WINDOW_MS) * WINDOW_MS;
+  const bucketStart = Math.floor(now / windowMs) * windowMs;
   const bucketHash = createHmac('sha256', getRateLimitSecret())
     .update(`${scope}|${bucketStart}`)
     .digest('hex');
-  const expiresAt = new Date(bucketStart + WINDOW_MS + 60_000);
+  const expiresAt = new Date(bucketStart + windowMs + 60_000);
 
   try {
     const record = await AuthRateLimit.findOneAndUpdate(
       { bucketHash },
       { $inc: { count: 1 }, $setOnInsert: { expiresAt } },
-      { new: true, upsert: true, setDefaultsOnInsert: true },
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true },
     ).select('count').lean();
     return record?.count ?? 1;
   } catch (error) {
@@ -31,7 +31,7 @@ async function incrementBucket(scope: string) {
     const record = await AuthRateLimit.findOneAndUpdate(
       { bucketHash },
       { $inc: { count: 1 } },
-      { new: true },
+      { returnDocument: 'after' },
     ).select('count').lean();
     return record?.count ?? 1;
   }
@@ -43,7 +43,17 @@ export async function consumeAuthBudget(request: Request, action: string, email?
     { key: `ip:${address}`, limit: 30 },
     ...(email ? [{ key: `${action}:${address}:${email}`, limit: 8 }] : []),
   ];
-  const counts = await Promise.all(scopes.map(({ key }) => incrementBucket(key)));
+  const counts = await Promise.all(scopes.map(({ key }) => incrementBucket(key, AUTH_WINDOW_MS)));
   const exceeded = scopes.some((scope, index) => counts[index] > scope.limit);
-  return { allowed: !exceeded, retryAfterSeconds: Math.ceil((WINDOW_MS - (Date.now() % WINDOW_MS)) / 1000) };
+  return { allowed: !exceeded, retryAfterSeconds: Math.ceil((AUTH_WINDOW_MS - (Date.now() % AUTH_WINDOW_MS)) / 1000) };
+}
+
+export async function consumeRateLimit(request: Request, scope: string, limit: number, windowMs = 60_000, subject?: string) {
+  const address = getClientAddress(request);
+  const keys = [`${scope}:ip:${address}`, ...(subject ? [`${scope}:subject:${subject}`] : [])];
+  const counts = await Promise.all(keys.map(key => incrementBucket(key, windowMs)));
+  return {
+    allowed: counts.every(count => count <= limit),
+    retryAfterSeconds: Math.ceil((windowMs - (Date.now() % windowMs)) / 1000),
+  };
 }

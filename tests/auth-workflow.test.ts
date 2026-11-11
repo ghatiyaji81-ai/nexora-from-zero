@@ -12,6 +12,7 @@ import { User } from '../src/models/user';
 
 const baseUrl = process.env.NEXORA_TEST_ORIGIN ?? 'http://127.0.0.1:3001';
 const origin = process.env.NEXORA_TEST_ORIGIN_HEADER ?? new URL(baseUrl).origin;
+const testAddress = `integration-${randomUUID()}`;
 
 async function post(path: string, data: unknown, cookie?: string, requestOrigin = origin) {
   return fetch(new URL(path, baseUrl), {
@@ -19,6 +20,7 @@ async function post(path: string, data: unknown, cookie?: string, requestOrigin 
     headers: {
       'Content-Type': 'application/json',
       Origin: requestOrigin,
+      'x-real-ip': testAddress,
       ...(cookie ? { Cookie: cookie } : {}),
     },
     body: JSON.stringify(data),

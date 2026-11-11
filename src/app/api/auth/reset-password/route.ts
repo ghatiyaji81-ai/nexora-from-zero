@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         const reset = await PasswordResetToken.findOneAndUpdate(
           { _id: candidate._id, tokenHash, expiresAt: { $gt: new Date() }, usedAt: { $exists: false } },
           { $set: { usedAt: new Date() } },
-          { new: true, session: transaction },
+          { returnDocument: 'after', session: transaction },
         ).select('userId');
         if (!reset) return;
 
