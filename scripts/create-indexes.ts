@@ -15,12 +15,13 @@ import { ThinkConversation } from '@/models/think-conversation';
 import { ThinkMessage } from '@/models/think-message';
 import { ThinkPreference } from '@/models/think-preference';
 import { ThinkDocument } from '@/models/think-document';
+import { SpeakRecording } from '@/models/speak-recording';
 
 loadEnvConfig(process.cwd());
 
 async function main() {
   await connectToDatabase();
-  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument]) {
+  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument, SpeakRecording]) {
     await model.createIndexes();
     console.log(`Created indexes for ${model.collection.collectionName}.`);
   }

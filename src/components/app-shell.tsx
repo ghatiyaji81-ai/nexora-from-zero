@@ -11,6 +11,7 @@ const commands = [
   { label: 'Go to overview', detail: 'Your NEXORA home', href: '/' },
   { label: 'Open Connect', detail: 'Private messages and groups', href: '/connect' },
   { label: 'Open Think', detail: 'AI workspace and conversations', href: '/think' },
+  { label: 'Open Speak', detail: 'Voice intelligence and recordings', href: '/speak' },
   { label: 'Open focus room', detail: 'Jump to the local focus timer', href: '/#focus' },
   { label: 'View product map', detail: 'See what is planned', href: '/#roadmap' },
   { label: 'Sign in', detail: 'Open your private workspace', href: '/login' },
@@ -65,7 +66,7 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
         <div className="palette-results">
           {filteredCommands.length > 0 ? filteredCommands.map((command, index) => (
             <button className="palette-result" type="button" key={command.href} onClick={() => runCommand(command.href)}>
-              <span className="palette-result-icon" aria-hidden="true">{index === 1 ? '◉' : index === 2 ? '⌘' : '↗'}</span>
+              <span className="palette-result-icon" aria-hidden="true">{index === 1 ? '◉' : index === 2 ? '⌘' : index === 3 ? '◖' : '↗'}</span>
               <span><strong>{command.label}</strong><small>{command.detail}</small></span>
               <span className="palette-result-arrow" aria-hidden="true">↵</span>
             </button>
@@ -134,6 +135,11 @@ export function AppShell({ children }: AppShellProps) {
             <span>Think</span>
             <span className="nav-link-arrow" aria-hidden="true">↗</span>
           </Link>
+          <Link className={`nav-link${pathname.startsWith('/speak') ? ' nav-link-active' : ''}`} href="/speak">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3m-4 0h8" /></svg>
+            <span>Speak</span>
+            <span className="nav-link-arrow" aria-hidden="true">↗</span>
+          </Link>
         </nav>
 
         <div className="sidebar-spacer" />
@@ -154,7 +160,7 @@ export function AppShell({ children }: AppShellProps) {
           <button className="mobile-menu-button icon-button" type="button" onClick={() => setMobileNavOpen(value => !value)} aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileNavOpen}>
             <svg viewBox="0 0 24 24" aria-hidden="true">{mobileNavOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}</svg>
           </button>
-          <div className="breadcrumb"><span>Personal space</span><span className="breadcrumb-slash">/</span><strong>{pathname.startsWith('/connect') ? 'Connect' : pathname.startsWith('/think') ? 'Think' : 'Overview'}</strong></div>
+          <div className="breadcrumb"><span>Personal space</span><span className="breadcrumb-slash">/</span><strong>{pathname.startsWith('/connect') ? 'Connect' : pathname.startsWith('/think') ? 'Think' : pathname.startsWith('/speak') ? 'Speak' : 'Overview'}</strong></div>
           <div className="topbar-actions">
             <button className="search-trigger" type="button" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></svg>

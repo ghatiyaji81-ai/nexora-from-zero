@@ -6,8 +6,8 @@
 - `src/components/` contains the shared shell and the first interactive workspace components.
 - `src/lib/` contains small domain-neutral definitions shared by the UI.
 - `public/` contains only original static assets for this application.
-- `src/lib/server/` owns MongoDB connection management, request validation, password hashing, sessions, throttling, recovery email delivery, Connect membership checks, THINK provider adapters, and document extraction. Provider credentials and adapters use a server-only boundary.
-- `src/models/` contains MongoDB schemas and named indexes for users, profiles, sessions, permissions, reset tokens, rate-limit buckets, Connect data, and THINK conversations, messages, preferences, and documents. Production indexes are created with `npm run db:create-indexes`; the command only creates declared indexes.
+- `src/lib/server/` owns MongoDB connection management, request validation, password hashing, sessions, throttling, recovery email delivery, Connect membership checks, THINK provider adapters, document extraction, and the SPEAK cloud-voice adapter boundary. Provider credentials and adapters use a server-only boundary.
+- `src/models/` contains MongoDB schemas and named indexes for users, profiles, sessions, permissions, reset tokens, rate-limit buckets, Connect data, THINK conversations, messages, preferences, and documents, and SPEAK recording metadata. Production indexes are created with `npm run db:create-indexes`; the command only creates declared indexes.
 - Account creation, password reset, and message/conversation updates use MongoDB transactions where atomicity is required. Configure MongoDB as a replica set, including for a local development database.
 - Password recovery is implemented through Resend and requires `RESEND_API_KEY`, `EMAIL_FROM`, and `APP_ORIGIN`. The UI and API report when email delivery is not configured.
 - CONNECT stores messages in MongoDB and attachments in a private GridFS bucket. Node.js Route Handlers expose paginated APIs and per-conversation SSE streams backed by MongoDB change streams. Each API and each stream event checks current conversation membership. GridFS downloads require an active message or group-avatar reference and current membership.
@@ -15,6 +15,7 @@
 - THINK conversations, messages, preferences, and extracted document text are owner-scoped in MongoDB. Original document files use a private GridFS bucket with server-side downloads unavailable to other accounts. Uploads are limited to PDF, DOCX, and UTF-8 TXT files up to 15 MB. The dependency-free extractor reads DOCX text, plain text, and PDFs with accessible text streams; scanned PDFs and some compressed/object-stream PDF variants are explicitly unsupported.
 - `AIProviderAdapter` currently has one real implementation: OpenAI Responses API streaming. `OPENAI_API_KEY` is read only by the server; `THINK_OPENAI_MODEL(S)` limits models offered by the UI. `THINK_ENABLE_WEB_SEARCH=true` opts the Research agent into OpenAI's hosted, read-only web search. The provider uses `store:false`; selected document text still leaves the application to the chosen provider when sent for an answer.
 - Agent profiles are persistent, selectable server-side instruction sets. Research can use the configured provider's web search, attached documents are sent as untrusted source material, and the Coding agent does not execute uploaded code. No sensitive side-effect tools are available; new tools must add explicit user approval before they can act outside a response.
+- SPEAK is an authenticated browser-native voice workspace that uses the existing THINK conversation and streaming APIs. Speech recognition and speech synthesis use browser APIs only and require no voice-provider credentials; recognition support and privacy behavior vary by browser, which may send speech to its configured speech service. The browser does not upload microphone recordings unless the user chooses Save recording. Saved audio uses owner-scoped MongoDB metadata and the private `speak_recordings` GridFS bucket, is limited to 10 MB, and can be associated with an owned THINK conversation. Audio playback and deletion re-check the recording owner. No cloud speech-to-text, realtime voice, or generated-audio provider is configured; `SpeakProviderAdapter` defines the future server-side extension boundary only.
 
 ## First vertical slice
 
@@ -28,6 +29,10 @@ The Connect route provides direct and group conversations, history pagination, r
 
 The Think route requires authentication and uses MongoDB to persist conversations, message history, model/agent preferences, and document metadata and extracted text. Its OpenAI adapter requests the Responses API with streaming enabled and provider storage disabled, then forwards deltas to the browser over server-sent events. Conversation, message, and document APIs enforce account ownership. TXT, DOCX, and text-layer PDF files are extracted locally and uploaded to a private GridFS bucket; attached text is sent to OpenAI only when the user sends a message. Model ids are configured on the server. The UI supports conversation search, pagination, rename, pin, archive, delete, edit-and-regenerate, continuation, citations, and responsive chat composition.
 
+## SPEAK vertical slice
+
+The Speak route requires authentication, obtains browser microphone permission only after a user action, and uses browser-supported speech recognition for editable dictation and speech synthesis for response playback. MediaRecorder can pause, resume, replay, discard, or explicitly save audio. Saved recordings and transcripts are private, owner-scoped, validated, stored in MongoDB plus GridFS, and can be attached to a THINK conversation. Dictated text is sent through THINK's authenticated conversation API and its existing real provider stream; no speech provider or cloud audio processing is claimed as available.
+
 ## Planned service boundaries
 
 Later work will add additional provider adapters, mature PDF/document retrieval with page-level references, richer structured/tool workflows, and explicit approval gates for any sensitive actions. Redis, queues, and WebSockets will be added only for features that need them. Project analysis will execute untrusted source only in a separately isolated worker environment; the web process will not run uploaded code.
@@ -36,9 +41,10 @@ Later work will add additional provider adapters, mature PDF/document retrieval 
 
 1. Foundation, authentication, and MongoDB ownership boundary — complete.
 2. CONNECT vertical slice — implemented; integration and production verification in progress.
-3. THINK — initial provider-backed vertical slice implemented; provider credentials and broader tools remain configurable follow-up. SPEAK remains planned.
-4. SOCIAL, CREATE, and PRODUCTIVITY workflows.
-5. BUILD and isolated project intelligence.
-6. DISCOVER, integrations, and production hardening.
+3. THINK — initial provider-backed vertical slice implemented; provider credentials and broader tools remain configurable follow-up.
+4. SPEAK — browser-native speech and owner-scoped audio storage implemented; cloud voice providers remain future work.
+5. SOCIAL, CREATE, and PRODUCTIVITY workflows.
+6. BUILD and isolated project intelligence.
+7. DISCOVER, integrations, and production hardening.
 
 Each feature becomes visible as available only after its behavior and error states exist.
