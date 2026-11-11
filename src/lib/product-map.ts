@@ -2,7 +2,7 @@ export const productMap = [
   { name: 'FOUNDATION', summary: 'A responsive shell, secure accounts, MongoDB profiles, and sessions.', status: 'In progress' },
   { name: 'CONNECT', summary: 'Private messaging, groups, and secure media sharing.', status: 'In progress' },
   { name: 'SOCIAL', summary: 'A personal feed, profiles, and creator discovery.', status: 'Planned' },
-  { name: 'THINK', summary: 'A useful home for questions, research, and ideas.', status: 'Planned' },
+  { name: 'THINK', summary: 'A multi-model intelligence workspace for conversation, research, and documents.', status: 'In progress' },
   { name: 'SPEAK', summary: 'Voice-first help with clear, visible controls.', status: 'Planned' },
   { name: 'CREATE', summary: 'Notes, documents, and creative work.', status: 'Planned' },
   { name: 'BUILD', summary: 'Projects, code, review, and safe previews.', status: 'Planned' },

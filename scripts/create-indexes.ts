@@ -11,12 +11,16 @@ import { Profile } from '@/models/profile';
 import { Session } from '@/models/session';
 import { TypingState } from '@/models/typing-state';
 import { User } from '@/models/user';
+import { ThinkConversation } from '@/models/think-conversation';
+import { ThinkMessage } from '@/models/think-message';
+import { ThinkPreference } from '@/models/think-preference';
+import { ThinkDocument } from '@/models/think-document';
 
 loadEnvConfig(process.cwd());
 
 async function main() {
   await connectToDatabase();
-  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState]) {
+  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument]) {
     await model.createIndexes();
     console.log(`Created indexes for ${model.collection.collectionName}.`);
   }

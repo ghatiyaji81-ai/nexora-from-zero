@@ -3,12 +3,12 @@ import { getAppOrigin } from '@/lib/server/env';
 
 const MAX_JSON_BYTES = 8 * 1024;
 
-export async function parseJsonBody(request: Request): Promise<unknown | null> {
+export async function parseJsonBody(request: Request, maxBytes = MAX_JSON_BYTES): Promise<unknown | null> {
   const contentType = request.headers.get('content-type')?.split(';', 1)[0]?.trim().toLowerCase();
   if (contentType !== 'application/json') return null;
 
   const contentLength = Number(request.headers.get('content-length'));
-  if (Number.isFinite(contentLength) && contentLength > MAX_JSON_BYTES) return null;
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) return null;
   if (!request.body) return null;
 
   const reader = request.body.getReader();
@@ -19,7 +19,7 @@ export async function parseJsonBody(request: Request): Promise<unknown | null> {
       const { done, value } = await reader.read();
       if (done) break;
       totalBytes += value.byteLength;
-      if (totalBytes > MAX_JSON_BYTES) {
+      if (totalBytes > maxBytes) {
         await reader.cancel();
         return null;
       }

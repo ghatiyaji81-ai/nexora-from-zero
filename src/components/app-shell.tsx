@@ -10,6 +10,7 @@ type AppShellProps = { children: ReactNode };
 const commands = [
   { label: 'Go to overview', detail: 'Your NEXORA home', href: '/' },
   { label: 'Open Connect', detail: 'Private messages and groups', href: '/connect' },
+  { label: 'Open Think', detail: 'AI workspace and conversations', href: '/think' },
   { label: 'Open focus room', detail: 'Jump to the local focus timer', href: '/#focus' },
   { label: 'View product map', detail: 'See what is planned', href: '/#roadmap' },
   { label: 'Sign in', detail: 'Open your private workspace', href: '/login' },
@@ -128,6 +129,11 @@ export function AppShell({ children }: AppShellProps) {
             <span>Connect</span>
             <span className="nav-link-arrow" aria-hidden="true">↗</span>
           </Link>
+          <Link className={`nav-link${pathname.startsWith('/think') ? ' nav-link-active' : ''}`} href="/think">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M8 9.5c0-1.4 1.3-2.5 3-2.5s3 1.1 3 2.5-1 2.1-2.5 2.5v2m0 2.5v.1" /></svg>
+            <span>Think</span>
+            <span className="nav-link-arrow" aria-hidden="true">↗</span>
+          </Link>
         </nav>
 
         <div className="sidebar-spacer" />
@@ -148,7 +154,7 @@ export function AppShell({ children }: AppShellProps) {
           <button className="mobile-menu-button icon-button" type="button" onClick={() => setMobileNavOpen(value => !value)} aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileNavOpen}>
             <svg viewBox="0 0 24 24" aria-hidden="true">{mobileNavOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}</svg>
           </button>
-          <div className="breadcrumb"><span>Personal space</span><span className="breadcrumb-slash">/</span><strong>Overview</strong></div>
+          <div className="breadcrumb"><span>Personal space</span><span className="breadcrumb-slash">/</span><strong>{pathname.startsWith('/connect') ? 'Connect' : pathname.startsWith('/think') ? 'Think' : 'Overview'}</strong></div>
           <div className="topbar-actions">
             <button className="search-trigger" type="button" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></svg>

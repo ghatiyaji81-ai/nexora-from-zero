@@ -4,7 +4,7 @@ NEXORA is a new, independent digital workspace. This repository is being built f
 
 ## Current stage
 
-The foundation includes the responsive workspace shell, keyboard command search, theme switch, and a browser-local focus timer. Authentication and account data use MongoDB, scrypt password hashing, server-side sessions, permission checks, and a single-use recovery flow. CONNECT now includes private one-to-one and group conversations, MongoDB-backed history, MongoDB change-stream events over SSE, delivery/read receipts, typing/presence, replies, reactions, edits, deletion, search, private GridFS attachments, voice recording, and group member/admin controls. Other product modules remain on the roadmap.
+The foundation includes the responsive workspace shell, keyboard command search, theme switch, and a browser-local focus timer. Authentication and account data use MongoDB, scrypt password hashing, server-side sessions, permission checks, and a single-use recovery flow. CONNECT includes private one-to-one and group conversations, MongoDB-backed history, MongoDB change-stream events over SSE, delivery/read receipts, typing/presence, replies, reactions, edits, deletion, search, private GridFS attachments, voice recording, and group member/admin controls. THINK adds private AI conversations, OpenAI Responses API streaming through a server-only adapter, model and agent preferences, searchable history, and owner-scoped document upload and extraction. Additional AI providers and richer document retrieval remain future work.
 
 ## Run locally
 
@@ -14,7 +14,8 @@ Requirements: Node.js 20.9 or newer, npm, and a MongoDB replica set (MongoDB Atl
 2. Set `MONGODB_URI` to a replica-set connection string. Transactions and MongoDB change streams require a replica set. CONNECT event streams are long-lived Node.js HTTP responses; deploy them on a runtime that supports persistent streaming connections.
 3. Generate a private rate-limit key with `node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"` and place it in `AUTH_RATE_LIMIT_SECRET`.
 4. Set `APP_ORIGIN` to the app's origin. For email recovery, also configure a verified Resend sender in `RESEND_API_KEY` and `EMAIL_FROM`.
-5. Run `npm run db:create-indexes` before deploying. It creates declared indexes and does not remove existing indexes.
+5. Configure `OPENAI_API_KEY` on the server to enable real THINK responses. Set `THINK_OPENAI_MODEL` or `THINK_OPENAI_MODELS` to model IDs available to that provider key. `THINK_ENABLE_WEB_SEARCH=true` explicitly enables OpenAI's web search tool for the Research agent. Keys and provider request details are never returned by the settings API.
+6. Run `npm run db:create-indexes` before deploying. It creates declared indexes and does not remove existing indexes.
 
 For an installed local MongoDB server, initialize it as a single-node replica set before starting NEXORA:
 
@@ -40,7 +41,7 @@ npm test
 npm run build
 ```
 
-`npm run test:integration` exercises signup, login, the protected workspace, password reset, session revocation, logout, and Connect workflows against MongoDB. The Connect workflow uses two independent authenticated sessions, waits for a message over SSE, checks delivery/read receipts, exercises replies/reactions/editing, creates and exchanges group messages, validates group permissions/removal, uploads and reads a private attachment, rejects a spoofed file, and checks unauthorized access. Start a local replica set and the app first; set `MONGODB_URI`, `AUTH_RATE_LIMIT_SECRET`, `APP_ORIGIN`, and `NEXORA_TEST_ORIGIN` for the test process. It creates and removes unique test accounts and chat data.
+`npm run test` covers auth security, provider stream parsing/retry/error handling, and safe document extraction. `npm run test:integration` exercises signup/login and CONNECT against MongoDB, then THINK conversation, preference, document, and cross-user ownership workflows. Start a local replica set and the app first; set `MONGODB_URI`, `AUTH_RATE_LIMIT_SECRET`, `APP_ORIGIN`, and `NEXORA_TEST_ORIGIN` for the test process. It creates and removes unique test accounts and chat data. A live OpenAI request is not part of the automated test suite; configure a real server key and run a manual end-to-end request to verify provider credentials, model access, billing, and streaming in your account.
 
 Build diagnosis on this Windows environment: the initial Turbopack build failed in its CSS worker. Restricted build attempts then failed intermittently while creating route output directories such as `.next/server/app/workspace` and `.next/server/app/signup`; direct Node directory creation succeeded and project ACLs allowed modification. I found and stopped a stale NEXORA `next dev --webpack` process on port 3000, but the restricted build still failed afterward. Windows Defender and McAfee are registered on the machine, though I found no evidence that either held these paths. A clean `npm run build` completed when run with normal Windows process permissions using Next's isolated `.nexora-build` output directory. The script selects webpack and the isolated directory for this environment.
 

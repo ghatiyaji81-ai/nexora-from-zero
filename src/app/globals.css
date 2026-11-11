@@ -515,6 +515,246 @@ kbd { border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; backg
 .logout-control { display: grid; justify-items: end; gap: 8px; }
 .logout-control > .button { min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 10px; cursor: pointer; }
 
+/* THINK intelligence center */
+.think-workspace { display: grid; height: calc(100dvh - 72px); min-height: 540px; grid-template-columns: 265px minmax(0, 1fr); overflow: hidden; background: var(--canvas); }
+.think-sidebar { display: flex; min-width: 0; flex-direction: column; border-right: 1px solid var(--line); background: var(--surface); }
+.think-side-brand { display: flex; align-items: center; gap: 10px; padding: 21px 19px 20px; border-bottom: 1px solid var(--line); }
+.think-side-mark { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 11px; background: var(--accent); color: var(--accent-ink); font-size: 16px; font-weight: 800; }
+.think-side-brand > div { display: grid; gap: 3px; }
+.think-side-brand strong { font-size: 12px; letter-spacing: .16em; }
+.think-side-brand small { color: var(--muted); font-size: 7px; font-weight: 700; letter-spacing: .13em; }
+.think-online-dot { width: 7px; height: 7px; margin-left: auto; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 15%, transparent); }
+.think-new-button { display: flex; min-height: 39px; align-items: center; gap: 9px; margin: 16px 13px 11px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface-raised); color: var(--ink); font-size: 10px; font-weight: 620; text-align: left; cursor: pointer; }
+.think-new-button:hover { border-color: #99ab6e; background: color-mix(in srgb, var(--accent) 11%, var(--surface-raised)); }
+.think-new-button > span { font-size: 17px; font-weight: 400; }
+.think-new-button kbd { margin-left: auto; font-size: 7px; }
+.think-side-search { display: flex; min-height: 34px; align-items: center; gap: 7px; margin: 0 13px 17px; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--canvas); color: var(--muted); }
+.think-side-search > span { font-size: 18px; }
+.think-side-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 9px; }
+.think-side-search input::placeholder { color: var(--muted); }
+.think-side-search kbd { flex: 0 0 auto; font-size: 7px; }
+.think-sidebar-section { display: flex; align-items: center; gap: 4px; padding: 0 14px 8px; }
+.think-sidebar-section > span { margin-right: auto; color: var(--muted); font-size: 7px; font-weight: 730; letter-spacing: .11em; }
+.think-sidebar-section button { padding: 5px 7px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 8px; cursor: pointer; }
+.think-sidebar-section button.active { background: var(--canvas); color: var(--ink-soft); }
+.think-conversation-list { flex: 1; overflow-y: auto; padding: 0 8px 9px; }
+.think-conversation-item { position: relative; display: flex; align-items: center; border-radius: 8px; }
+.think-conversation-item:hover, .think-conversation-item.selected { background: var(--canvas); }
+.think-conversation-select { display: flex; min-width: 0; flex: 1; align-items: center; gap: 9px; padding: 9px 4px 9px 8px; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.think-conversation-icon { display: grid; width: 28px; height: 28px; flex: 0 0 auto; place-items: center; border: 1px solid var(--line); border-radius: 8px; color: #879b56; font-size: 14px; }
+.think-conversation-select > span:last-child { display: grid; min-width: 0; gap: 4px; }
+.think-conversation-select strong { overflow: hidden; color: var(--ink-soft); font-size: 9px; font-weight: 630; text-overflow: ellipsis; white-space: nowrap; }
+.think-conversation-select small { overflow: hidden; color: var(--muted); font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+.think-conversation-menu { position: relative; margin-right: 4px; }
+.think-conversation-menu summary { display: grid; width: 25px; height: 27px; place-items: center; border-radius: 6px; color: var(--muted); list-style: none; cursor: pointer; opacity: 0; }
+.think-conversation-item:hover .think-conversation-menu summary, .think-conversation-menu[open] summary { opacity: 1; }
+.think-conversation-menu summary::-webkit-details-marker { display: none; }
+.think-conversation-menu > div { position: absolute; z-index: 30; top: 26px; right: 0; display: grid; width: 126px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-raised); box-shadow: var(--shadow-soft); }
+.think-conversation-menu button { padding: 8px; border: 0; border-radius: 5px; background: transparent; color: var(--ink-soft); font-size: 8px; text-align: left; cursor: pointer; }
+.think-conversation-menu button:hover { background: var(--canvas); }
+.think-conversation-menu button.destructive { color: #a1433a; }
+.think-side-loading { display: flex; justify-content: center; gap: 8px; padding: 22px 5px; color: var(--muted); font-size: 8px; }
+.think-side-loading i { width: 10px; height: 10px; border: 1px solid var(--line-strong); border-top-color: #8ca34d; border-radius: 50%; animation: think-spin .8s linear infinite; }
+.think-side-empty { display: grid; justify-items: center; padding: 28px 14px; text-align: center; }
+.think-side-empty > span { display: grid; width: 31px; height: 31px; place-items: center; border: 1px solid var(--line); border-radius: 10px; color: #8ba04f; font-size: 17px; }
+.think-side-empty strong { margin-top: 11px; font-size: 9px; }
+.think-side-empty p { color: var(--muted); font-size: 8px; line-height: 1.7; }
+.think-sidebar-bottom { display: flex; align-items: center; gap: 9px; padding: 12px 14px; border-top: 1px solid var(--line); }
+.think-user-avatar { display: grid; width: 29px; height: 29px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--ink); color: var(--surface); font-size: 10px; font-weight: 700; }
+.think-sidebar-bottom > span:nth-child(2) { display: grid; min-width: 0; gap: 3px; }
+.think-sidebar-bottom strong { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.think-sidebar-bottom small { color: var(--muted); font-size: 7px; }
+.think-private-lock { margin-left: auto; color: var(--muted); font-size: 14px; }
+.think-search-results { display: grid; gap: 2px; max-height: 220px; overflow-y: auto; margin: -10px 13px 13px; padding: 5px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-raised); }
+.think-search-results button { display: flex; gap: 8px; padding: 7px; border: 0; border-radius: 6px; background: transparent; text-align: left; cursor: pointer; }
+.think-search-results button:hover { background: var(--canvas); }
+.think-search-results button > span:first-child { color: #879b56; }
+.think-search-results button > span:last-child { display: grid; min-width: 0; gap: 4px; }
+.think-search-results strong, .think-search-results small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.think-search-results strong { font-size: 8px; }
+.think-search-results small, .think-search-results p { margin: 0; color: var(--muted); font-size: 7px; }
+.think-search-results p { padding: 9px; }
+.think-main { display: flex; min-width: 0; min-height: 0; flex-direction: column; background: var(--canvas); }
+.think-header { display: flex; min-height: 69px; align-items: center; justify-content: space-between; gap: 15px; padding: 0 clamp(16px, 3vw, 38px); border-bottom: 1px solid var(--line); background: var(--surface); }
+.think-header-title { display: flex; min-width: 0; align-items: center; gap: 10px; }
+.think-header-glyph { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border: 1px solid var(--line); border-radius: 9px; background: color-mix(in srgb, var(--accent) 17%, var(--surface)); color: #7c9146; font-size: 15px; }
+.think-header-title > div { min-width: 0; }
+.think-eyebrow { display: block; margin: 0 0 4px; color: var(--muted); font-size: 6px; font-weight: 750; letter-spacing: .13em; }
+.think-header-title h1 { overflow: hidden; max-width: 360px; margin: 0; font-size: 13px; font-weight: 630; letter-spacing: -.02em; text-overflow: ellipsis; white-space: nowrap; }
+.think-header-controls { display: flex; align-items: center; gap: 8px; }
+.think-header-controls label { display: grid; gap: 4px; }
+.think-header-controls label > span { padding-left: 4px; color: var(--muted); font-size: 6px; font-weight: 740; letter-spacing: .09em; }
+.think-header-controls select { max-width: 160px; min-height: 31px; padding: 0 25px 0 9px; border: 1px solid var(--line); border-radius: 7px; appearance: auto; background: var(--surface-raised); color: var(--ink-soft); font-size: 8px; }
+.think-header-controls label:last-child select { max-width: 145px; }
+.think-mobile-back { display: none; }
+.think-alert { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 19px; background: #a5483e; color: #fff; font-size: 9px; }
+.think-alert button { border: 0; background: transparent; color: inherit; font-size: 16px; cursor: pointer; }
+.think-provider-banner { display: flex; align-items: center; gap: 11px; margin: 15px auto 0; padding: 10px 13px; width: min(760px, calc(100% - 36px)); border: 1px solid color-mix(in srgb, #b79849 35%, var(--line)); border-radius: 10px; background: color-mix(in srgb, #e4d7aa 20%, var(--surface)); }
+.think-provider-banner > span:first-child { color: #8e7737; font-size: 15px; }
+.think-provider-banner > div { display: grid; gap: 3px; }
+.think-provider-banner strong { color: var(--ink-soft); font-size: 9px; }
+.think-provider-banner p { margin: 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.think-provider-banner code { padding: 1px 3px; border-radius: 3px; background: color-mix(in srgb, var(--line) 55%, transparent); color: var(--ink-soft); font-size: 8px; }
+.think-provider-state { margin-left: auto; color: #91793b; font-size: 6px; font-weight: 750; letter-spacing: .1em; white-space: nowrap; }
+.think-messages { display: flex; width: min(830px, 100%); min-height: 0; flex: 1; flex-direction: column; align-self: center; gap: 22px; overflow-y: auto; padding: 26px clamp(17px, 4vw, 45px) 35px; scroll-behavior: smooth; }
+.think-welcome { display: flex; width: 100%; flex-direction: column; align-items: center; margin: auto 0; padding: 24px 0 14px; text-align: center; }
+.think-orbit { position: relative; display: grid; width: 66px; height: 66px; place-items: center; margin-bottom: 19px; border: 1px solid var(--line-strong); border-radius: 50%; color: #849a4b; }
+.think-orbit::before, .think-orbit::after { position: absolute; inset: 8px; border: 1px solid var(--line); border-radius: 50%; content: ''; }
+.think-orbit::after { inset: -5px 20px; transform: rotate(43deg); }
+.think-orbit i { position: absolute; inset: -5px 20px; border: 1px solid var(--line); border-radius: 50%; transform: rotate(-43deg); }
+.think-orbit span { position: relative; z-index: 1; display: grid; width: 25px; height: 25px; place-items: center; border-radius: 8px; background: var(--accent); color: var(--accent-ink); font-size: 15px; }
+.think-welcome > .think-eyebrow { margin-bottom: 8px; }
+.think-welcome h2 { margin: 0; font-size: clamp(27px, 4vw, 39px); font-weight: 510; letter-spacing: -.055em; line-height: 1.15; }
+.think-welcome-copy { max-width: 440px; margin: 12px 0 24px; color: var(--muted); font-size: 10px; line-height: 1.8; }
+.think-prompt-cards { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: left; }
+.think-prompt-cards button { position: relative; display: grid; min-height: 91px; align-content: start; gap: 7px; padding: 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; text-align: left; transition: border-color 140ms ease, transform 140ms ease; }
+.think-prompt-cards button:hover { transform: translateY(-2px); border-color: #abbc82; }
+.think-prompt-cards small { color: #869a4f; font-size: 7px; font-weight: 730; letter-spacing: .08em; }
+.think-prompt-cards strong { font-size: 9px; }
+.think-prompt-cards button > span { color: var(--muted); font-size: 7px; line-height: 1.5; }
+.think-prompt-cards i { position: absolute; top: 10px; right: 10px; color: var(--muted); font-size: 9px; font-style: normal; }
+.think-message { display: grid; grid-template-columns: 29px minmax(0, 1fr); gap: 11px; animation: think-arrive 160ms ease-out; }
+.think-message-avatar { display: grid; width: 27px; height: 27px; place-items: center; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink-soft); font-size: 8px; font-weight: 720; }
+.think-message-assistant .think-message-avatar { border-color: color-mix(in srgb, #99af62 40%, var(--line)); background: var(--accent); color: var(--accent-ink); }
+.think-message-body { min-width: 0; padding: 1px 0 3px; }
+.think-message-meta { display: flex; align-items: center; gap: 8px; margin: 1px 0 7px; }
+.think-message-meta strong { color: var(--ink); font-size: 7px; font-weight: 780; letter-spacing: .1em; }
+.think-message-meta span, .think-message-meta time { color: var(--muted); font-size: 7px; }
+.think-message-meta time { margin-left: auto; }
+.think-markdown { color: var(--ink-soft); font-size: 10px; line-height: 1.8; overflow-wrap: anywhere; }
+.think-markdown > :first-child { margin-top: 0; }
+.think-markdown > :last-child { margin-bottom: 0; }
+.think-markdown p { margin: 0 0 11px; }
+.think-markdown h2, .think-markdown h3, .think-markdown h4 { margin: 18px 0 8px; color: var(--ink); font-weight: 660; letter-spacing: -.02em; line-height: 1.35; }
+.think-markdown h2 { font-size: 16px; }
+.think-markdown h3 { font-size: 13px; }
+.think-markdown h4 { font-size: 11px; }
+.think-markdown a { color: #778d3e; text-decoration: underline; text-underline-offset: 2px; }
+.think-markdown strong { color: var(--ink); font-weight: 700; }
+.think-markdown ul, .think-markdown ol { display: grid; gap: 4px; margin: 6px 0 12px; padding-left: 19px; }
+.think-markdown li::marker { color: #91a460; }
+.think-markdown blockquote { margin: 10px 0; padding: 7px 12px; border-left: 2px solid #93a95a; background: color-mix(in srgb, var(--accent) 9%, var(--surface)); color: var(--muted); }
+.think-markdown blockquote p { margin: 0 0 4px; }
+.think-inline-code { padding: 1px 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: #77823d; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .9em; }
+.think-code-block { position: relative; max-width: 100%; overflow: auto; margin: 10px 0 13px; padding: 13px 14px; border: 1px solid #363932; border-radius: 9px; background: #1c1e1a; color: #e6e9dd; font-size: 9px; line-height: 1.7; tab-size: 2; }
+.think-code-block code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
+.think-code-block code[data-language]::before { display: block; margin-bottom: 7px; color: #a9b888; content: attr(data-language); font-family: inherit; font-size: 7px; text-transform: uppercase; }
+.think-table-wrap { max-width: 100%; overflow: auto; margin: 9px 0 13px; border: 1px solid var(--line); border-radius: 8px; }
+.think-markdown table { width: 100%; border-collapse: collapse; font-size: 8px; }
+.think-markdown th, .think-markdown td { min-width: 80px; padding: 7px 9px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.think-markdown th { background: var(--surface); color: var(--ink); font-weight: 700; }
+.think-markdown tr:last-child td { border-bottom: 0; }
+.think-typing-cursor { display: inline-block; width: 6px; height: 12px; margin: 3px 2px; background: #8ea64c; animation: think-blink .8s steps(2, start) infinite; vertical-align: middle; }
+.think-message-state { display: inline-block; margin-top: 5px; color: #a44a40; font-size: 8px; }
+.think-message-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; opacity: .65; }
+.think-message-actions:hover { opacity: 1; }
+.think-message-actions button { padding: 4px 7px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--muted); font-size: 7px; cursor: pointer; }
+.think-message-actions button:hover { border-color: var(--line); background: var(--surface); color: var(--ink); }
+.think-edit-prompt textarea { width: 100%; min-height: 80px; padding: 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 10px; line-height: 1.6; resize: vertical; }
+.think-edit-prompt > div { display: flex; justify-content: flex-end; gap: 7px; margin-top: 6px; }
+.think-edit-prompt button { padding: 6px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-size: 8px; cursor: pointer; }
+.think-edit-prompt button:last-child { border-color: var(--ink); background: var(--ink); color: var(--surface); }
+.think-citations { display: grid; gap: 5px; margin: 10px 0 2px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.think-citations > strong { margin-bottom: 2px; color: var(--muted); font-size: 7px; font-weight: 740; letter-spacing: .09em; text-transform: uppercase; }
+.think-citations a { display: flex; align-items: center; gap: 7px; min-width: 0; color: var(--ink-soft); font-size: 8px; }
+.think-citations a > span { display: grid; width: 15px; height: 15px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--accent) 36%, var(--surface)); color: #697a3c; font-size: 7px; }
+.think-citations a > i { margin-left: auto; color: var(--muted); font-size: 8px; font-style: normal; }
+.think-citations a:hover { color: #738a3d; }
+.think-tool-log { margin-top: 8px; color: var(--muted); font-size: 8px; }
+.think-tool-log summary { cursor: pointer; }
+.think-tool-log p { margin: 5px 0 0 8px; }
+.think-tool-log p span { color: #789149; }
+.think-message-documents { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.think-message-documents span { padding: 5px 7px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); color: var(--muted); font-size: 7px; }
+.think-streaming-state { display: flex; align-items: center; gap: 5px; margin-left: 39px; color: var(--muted); font-size: 8px; }
+.think-streaming-state .think-header-glyph { width: 22px; height: 22px; margin-right: 4px; font-size: 11px; }
+.think-streaming-state > i { width: 4px; height: 4px; border-radius: 50%; background: #91a75a; animation: think-dot 1s ease-in-out infinite alternate; }
+.think-streaming-state > i:nth-of-type(2) { animation-delay: .16s; }
+.think-streaming-state > i:nth-of-type(3) { animation-delay: .32s; }
+.think-load-older { align-self: center; padding: 6px 10px; border: 1px solid var(--line); border-radius: 99px; background: var(--surface); color: var(--muted); font-size: 7px; cursor: pointer; }
+.think-load-older:disabled { opacity: .5; cursor: default; }
+.think-compose-area { width: min(830px, 100%); align-self: center; padding: 0 clamp(17px, 4vw, 45px) 9px; }
+.think-notice { margin: 0 0 6px; color: #7c9144; font-size: 8px; text-align: center; }
+.think-selected-docs { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 7px; }
+.think-selected-docs > span { display: flex; max-width: 220px; align-items: center; gap: 6px; padding: 5px 7px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink-soft); font-size: 7px; }
+.think-selected-docs > span > i { color: #85974e; font-style: normal; }
+.think-selected-docs > span > button { border: 0; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; }
+.think-composer { display: grid; min-height: 108px; padding: 9px 10px 8px; border: 1px solid var(--line-strong); border-radius: 13px; background: var(--surface-raised); box-shadow: 0 7px 22px rgba(25, 27, 20, .045); }
+.think-composer:focus-within { border-color: color-mix(in srgb, #94aa5e 60%, var(--line-strong)); }
+.think-compose-tools { display: flex; min-height: 26px; align-items: center; gap: 4px; }
+.think-compose-tools > button, .think-doc-picker > summary { display: grid; width: 25px; height: 25px; place-items: center; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--ink-soft); font-size: 15px; list-style: none; cursor: pointer; }
+.think-compose-tools > button:hover, .think-doc-picker > summary:hover { border-color: var(--line); background: var(--canvas); }
+.think-doc-picker { position: relative; }
+.think-doc-picker > summary::-webkit-details-marker { display: none; }
+.think-doc-picker > div { position: absolute; z-index: 30; bottom: 30px; left: 0; display: grid; width: 230px; max-height: 250px; overflow: auto; padding: 5px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-raised); box-shadow: var(--shadow-soft); }
+.think-doc-picker label { display: flex; align-items: center; gap: 7px; padding: 7px 5px; border-bottom: 1px solid var(--line); font-size: 8px; }
+.think-doc-picker label:last-child { border-bottom: 0; }
+.think-doc-picker label input { accent-color: #899e4f; }
+.think-doc-picker label span { display: grid; flex: 1; gap: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.think-doc-picker label small { color: var(--muted); font-size: 7px; }
+.think-doc-picker label button { border: 0; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; }
+.think-agent-chip { margin-left: auto; padding: 4px 7px; border: 1px solid var(--line); border-radius: 20px; color: var(--muted); font-size: 7px; }
+.think-composer textarea { width: 100%; min-height: 36px; max-height: 130px; padding: 6px 4px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 10px; line-height: 1.65; resize: vertical; }
+.think-composer textarea::placeholder { color: var(--muted); }
+.think-composer-footer { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
+.think-composer-footer > span { color: var(--muted); font-size: 7px; }
+.think-send-button { display: grid; width: 29px; height: 29px; place-items: center; border: 0; border-radius: 8px; background: var(--ink); color: var(--surface); font-size: 19px; line-height: 1; cursor: pointer; }
+.think-send-button:disabled { opacity: .35; cursor: default; }
+.think-send-button:not(:disabled):hover { background: #647842; }
+.think-send-stop { font-size: 10px; }
+.think-privacy-note { margin: 7px 0 0; color: var(--muted); font-size: 6px; text-align: center; }
+@keyframes think-spin { to { transform: rotate(360deg); } }
+@keyframes think-blink { to { visibility: hidden; } }
+@keyframes think-dot { to { transform: translateY(-3px); opacity: .4; } }
+@keyframes think-arrive { from { opacity: .6; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 900px) {
+  .think-workspace { grid-template-columns: 236px minmax(0, 1fr); }
+  .think-header { padding-right: 16px; padding-left: 16px; }
+  .think-header-controls select { max-width: 130px; }
+  .think-header-controls label:last-child select { max-width: 122px; }
+}
+@media (max-width: 680px) {
+  .think-workspace { position: relative; height: calc(100dvh - 60px); min-height: 470px; display: block; }
+  .think-sidebar, .think-main { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .think-sidebar { z-index: 2; transition: transform .2s ease; }
+  .think-sidebar-hidden { transform: translateX(-102%); }
+  .think-main { z-index: 1; visibility: hidden; }
+  .think-mobile-chat-open .think-main { z-index: 3; visibility: visible; }
+  .think-header { min-height: 61px; padding: 0 11px; }
+  .think-header-title { gap: 7px; }
+  .think-mobile-back { display: grid; width: 27px; height: 31px; place-items: center; border: 0; background: transparent; color: var(--ink-soft); font-size: 20px; cursor: pointer; }
+  .think-header-glyph { width: 26px; height: 26px; font-size: 13px; }
+  .think-header-title h1 { max-width: 145px; font-size: 10px; }
+  .think-eyebrow { font-size: 5px; }
+  .think-header-controls { gap: 4px; }
+  .think-header-controls label > span { display: none; }
+  .think-header-controls select { max-width: 94px; min-height: 29px; padding-left: 5px; font-size: 7px; }
+  .think-header-controls label:last-child select { max-width: 102px; }
+  .think-messages { gap: 18px; padding: 19px 13px 25px; }
+  .think-welcome { padding: 18px 0 11px; }
+  .think-orbit { width: 55px; height: 55px; margin-bottom: 15px; }
+  .think-welcome h2 { max-width: 320px; font-size: 27px; }
+  .think-welcome-copy { max-width: 330px; margin: 10px 0 18px; font-size: 9px; }
+  .think-prompt-cards { grid-template-columns: 1fr; gap: 6px; }
+  .think-prompt-cards button { min-height: 50px; grid-template-columns: 24px 1fr 1.4fr; align-items: center; gap: 6px; padding: 8px 10px; }
+  .think-prompt-cards button > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .think-prompt-cards i { display: none; }
+  .think-message { grid-template-columns: 25px minmax(0, 1fr); gap: 8px; }
+  .think-message-avatar { width: 24px; height: 24px; }
+  .think-markdown { font-size: 9px; }
+  .think-provider-banner { width: calc(100% - 22px); gap: 7px; margin-top: 9px; padding: 8px; }
+  .think-provider-state { display: none; }
+  .think-compose-area { padding: 0 8px max(7px, env(safe-area-inset-bottom)); }
+  .think-composer { min-height: 99px; border-radius: 12px; }
+  .think-composer textarea { min-height: 31px; font-size: 9px; }
+  .think-composer-footer > span { font-size: 6px; }
+  .think-privacy-note { margin-top: 5px; font-size: 5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .think-sidebar, .think-prompt-cards button { transition: none; }
+  .think-side-loading i, .think-typing-cursor, .think-streaming-state > i, .think-message { animation: none; }
+}
+
 @media (max-width: 680px) {
   .topbar-auth-link { font-size: 9px; }
   .auth-page-topline, .account-header { min-height: 64px; }
