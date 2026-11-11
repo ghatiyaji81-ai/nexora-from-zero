@@ -33,7 +33,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    ".nexora-build/types/**/*.ts",
+    ".nexora-build/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

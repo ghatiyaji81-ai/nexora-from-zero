@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  distDir: '.nexora-build',
   poweredByHeader: false,
   reactStrictMode: true,
   turbopack: {

@@ -3,15 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --conditions=react-server --import tsx --test tests/auth-security.test.ts tests/recovery-email.test.ts",
+    "test:integration": "node --conditions=react-server --import tsx --test tests/auth-workflow.test.ts",
+    "db:create-indexes": "node --conditions=react-server --import tsx scripts/create-indexes.ts"
   },
   "dependencies": {
+    "@next/env": "^16.4.5",
+    "mongoose": "^9.12.1",
     "next": "16.4.5",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.5",
@@ -20,6 +27,7 @@
     "@types/react-dom": "19.3.0",
     "postcss": "8.5.32",
     "tailwindcss": "4.3.5",
+    "tsx": "^4.23.15",
     "typescript": "7.0.2"
   }
 }

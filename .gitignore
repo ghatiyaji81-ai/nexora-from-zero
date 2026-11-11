@@ -1,5 +1,7 @@
 node_modules/
 .next/
+.nexora-build/
+.local/
 out/
 build/
 coverage/

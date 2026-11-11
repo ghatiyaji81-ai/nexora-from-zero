@@ -11,6 +11,7 @@ const commands = [
   { label: 'Go to overview', detail: 'Your NEXORA home', href: '/' },
   { label: 'Open focus room', detail: 'Jump to the local focus timer', href: '/#focus' },
   { label: 'View product map', detail: 'See what is planned', href: '/#roadmap' },
+  { label: 'Sign in', detail: 'Open your private workspace', href: '/login' },
 ];
 
 function BrandMark() {
@@ -131,7 +132,7 @@ export function AppShell({ children }: AppShellProps) {
         </div>
         <div className="sidebar-bottom">
           <span className="sidebar-avatar" aria-hidden="true">NX</span>
-          <span className="sidebar-user"><strong>New workspace</strong><small>Account setup comes later</small></span>
+          <Link className="sidebar-user" href="/login"><strong>Sign in or join</strong><small>Open a private workspace</small></Link>
           <span className="sidebar-presence" aria-label="Local preview" />
         </div>
       </aside>
@@ -149,6 +150,7 @@ export function AppShell({ children }: AppShellProps) {
             </button>
             <span className="topbar-divider" />
             <ThemeToggle />
+            <Link className="topbar-auth-link" href="/login">Sign in</Link>
             <span className="topbar-avatar" aria-label="NEXORA local preview">N</span>
           </div>
         </header>
