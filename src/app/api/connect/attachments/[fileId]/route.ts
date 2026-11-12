@@ -20,8 +20,8 @@ export async function GET(request: Request, route: RouteContext) {
   if (!file) return jsonResponse({ error: 'Attachment not found.' }, 404);
   const conversationId = file.metadata?.conversationId;
   if (!(conversationId instanceof mongoose.Types.ObjectId)) return jsonResponse({ error: 'Attachment not found.' }, 404);
-  const authorized = await Conversation.exists({ _id: conversationId, memberIds: new mongoose.Types.ObjectId(context.user.id) });
-  if (!authorized) return jsonResponse({ error: 'Attachment not found.' }, 404);
+  const conversation = await memberConversation(context.user.id, conversationId.toString());
+  if (!conversation) return jsonResponse({ error: 'Attachment not found.' }, 404);
   const userId = new mongoose.Types.ObjectId(context.user.id);
   const visibleMessage = await Message.exists({ conversationId, 'attachments.fileId': id, deletedForEveryoneAt: { $exists: false }, deletedFor: { $ne: userId } });
   const activeConversation = await Conversation.exists({ _id: conversationId, avatarFileId: id });

@@ -4,6 +4,7 @@ import { findConversationFor, requireConnect } from '@/lib/server/connect';
 import { jsonResponse, parseJsonBody } from '@/lib/server/http';
 import { Conversation } from '@/models/conversation';
 import { Message } from '@/models/message';
+import { hasSocialBlockBetween } from '@/lib/server/social';
 
 export const runtime = 'nodejs';
 const schema = z.object({

@@ -4,6 +4,7 @@ import { requireConnect } from '@/lib/server/connect';
 import { jsonResponse, parseJsonBody } from '@/lib/server/http';
 import { Conversation } from '@/models/conversation';
 import { User } from '@/models/user';
+import { hasSocialBlockBetween } from '@/lib/server/social';
 
 export const runtime = 'nodejs';
 const schema = z.object({ userId: z.string().regex(/^[a-f\d]{24}$/i).transform(id => id.toLowerCase()) });
@@ -15,6 +16,9 @@ export async function POST(request: Request) {
   if (!parsed.success || parsed.data.userId === gate.context.user.id) return jsonResponse({ error: 'Choose another NEXORA member.' }, 400);
   const target = await User.findOne({ _id: parsed.data.userId, status: 'active' }).select('_id').lean();
   if (!target) return jsonResponse({ error: 'Member not found.' }, 404);
+  if (await hasSocialBlockBetween(new mongoose.Types.ObjectId(gate.context.user.id), target._id)) {
+    return jsonResponse({ error: 'This direct conversation is unavailable.' }, 403);
+  }
   const ids = [gate.context.user.id, parsed.data.userId].sort();
   const directKey = ids.join(':');
   try {

@@ -15,6 +15,7 @@ const commands = [
   { label: 'Open Create', detail: 'Projects, design and media studios', href: '/create' },
   { label: 'Open Build', detail: 'Projects, code, review and safe previews', href: '/build' },
   { label: 'Open Discover', detail: 'Private document research and source-backed reports', href: '/discover' },
+  { label: 'Open Social', detail: 'Profiles, posts, stories and discovery', href: '/social' },
   { label: 'Open focus room', detail: 'Jump to the local focus timer', href: '/#focus' },
   { label: 'View product map', detail: 'See what is planned', href: '/#roadmap' },
   { label: 'Sign in', detail: 'Open your private workspace', href: '/login' },
@@ -158,6 +159,11 @@ export function AppShell({ children }: AppShellProps) {
             <span>Discover</span>
             <span className="nav-link-arrow" aria-hidden="true">↗</span>
           </Link>
+          <Link className={`nav-link${pathname.startsWith('/social') ? ' nav-link-active' : ''}`} href="/social">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2.5" /><path d="M3.5 19a5.5 5.5 0 0 1 11 0m1-4a4.5 4.5 0 0 1 5 4" /></svg>
+            <span>Social</span>
+            <span className="nav-link-arrow" aria-hidden="true">↗</span>
+          </Link>
         </nav>
 
         <div className="sidebar-spacer" />
@@ -178,7 +184,7 @@ export function AppShell({ children }: AppShellProps) {
           <button className="mobile-menu-button icon-button" type="button" onClick={() => setMobileNavOpen(value => !value)} aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileNavOpen}>
             <svg viewBox="0 0 24 24" aria-hidden="true">{mobileNavOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}</svg>
           </button>
-          <div className="breadcrumb"><span>Personal space</span><span className="breadcrumb-slash">/</span><strong>{pathname.startsWith('/connect') ? 'Connect' : pathname.startsWith('/think') ? 'Think' : pathname.startsWith('/speak') ? 'Speak' : pathname.startsWith('/create') ? 'Create' : pathname.startsWith('/build') ? 'Build' : pathname.startsWith('/discover') ? 'Discover' : 'Overview'}</strong></div>
+          <div className="breadcrumb"><span>Personal space</span><span className="breadcrumb-slash">/</span><strong>{pathname.startsWith('/connect') ? 'Connect' : pathname.startsWith('/think') ? 'Think' : pathname.startsWith('/speak') ? 'Speak' : pathname.startsWith('/create') ? 'Create' : pathname.startsWith('/build') ? 'Build' : pathname.startsWith('/discover') ? 'Discover' : pathname.startsWith('/social') ? 'Social' : 'Overview'}</strong></div>
           <div className="topbar-actions">
             <button className="search-trigger" type="button" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></svg>

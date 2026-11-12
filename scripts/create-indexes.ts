@@ -32,12 +32,23 @@ import { DiscoverBookmark } from '@/models/discover-bookmark';
 import { DiscoverResearchTask } from '@/models/discover-research-task';
 import { DiscoverResearchReport } from '@/models/discover-research-report';
 import { DiscoverEvidence } from '@/models/discover-evidence';
+import { SocialProfile } from '@/models/social-profile';
+import { SocialFollow } from '@/models/social-follow';
+import { SocialFollowRequest } from '@/models/social-follow-request';
+import { SocialPost } from '@/models/social-post';
+import { SocialComment } from '@/models/social-comment';
+import { SocialReaction } from '@/models/social-reaction';
+import { SocialBookmark } from '@/models/social-bookmark';
+import { SocialBlock } from '@/models/social-block';
+import { SocialStory } from '@/models/social-story';
+import { SocialNotification } from '@/models/social-notification';
+import { SocialReport } from '@/models/social-report';
 
 loadEnvConfig(process.cwd());
 
 async function main() {
   await connectToDatabase();
-  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument, SpeakRecording, CreateProject, CreateProjectVersion, CreateAsset, CreateExport, BuildProject, BuildProjectFile, BuildProjectFileVersion, BuildApproval, BuildSecurityScan, DiscoverSearch, DiscoverSource, DiscoverCollection, DiscoverBookmark, DiscoverResearchTask, DiscoverResearchReport, DiscoverEvidence]) {
+  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument, SpeakRecording, CreateProject, CreateProjectVersion, CreateAsset, CreateExport, BuildProject, BuildProjectFile, BuildProjectFileVersion, BuildApproval, BuildSecurityScan, DiscoverSearch, DiscoverSource, DiscoverCollection, DiscoverBookmark, DiscoverResearchTask, DiscoverResearchReport, DiscoverEvidence, SocialProfile, SocialFollow, SocialFollowRequest, SocialPost, SocialComment, SocialReaction, SocialBookmark, SocialBlock, SocialStory, SocialNotification, SocialReport]) {
     await model.createIndexes();
     console.log(`Created indexes for ${model.collection.collectionName}.`);
   }

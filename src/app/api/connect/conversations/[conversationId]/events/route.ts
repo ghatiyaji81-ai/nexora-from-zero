@@ -6,6 +6,7 @@ import { Conversation } from '@/models/conversation';
 import { Message } from '@/models/message';
 import { Presence } from '@/models/presence';
 import { TypingState } from '@/models/typing-state';
+import { hasSocialBlockBetween } from '@/lib/server/social';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -43,7 +44,13 @@ export async function GET(request: Request, route: RouteContext) {
         await Promise.allSettled([messageStream?.close(), typingStream?.close(), presenceStream?.close(), conversationStream?.close()]);
         try { controller.close(); } catch { /* response already closed */ }
       };
-      const stillMember = async () => Boolean(await Conversation.exists({ _id: conversationObjectId, memberIds: thisUserId }));
+      const stillMember = async () => {
+        const current = await Conversation.findOne({ _id: conversationObjectId, memberIds: thisUserId }).select('type memberIds').lean();
+        if (!current) return false;
+        if (current.type !== 'direct') return true;
+        const otherMember = current.memberIds.find(memberId => !memberId.equals(thisUserId));
+        return !otherMember || !await hasSocialBlockBetween(thisUserId, otherMember);
+      };
       const revokeIfRemoved = async () => {
         if (await stillMember()) return false;
         send('revoked', {});

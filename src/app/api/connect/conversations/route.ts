@@ -6,6 +6,7 @@ import { Conversation } from '@/models/conversation';
 import { Message } from '@/models/message';
 import { Profile } from '@/models/profile';
 import { User } from '@/models/user';
+import { SocialBlock } from '@/models/social-block';
 
 export const runtime = 'nodejs';
 
@@ -19,7 +20,13 @@ export async function GET(request: Request) {
   const gate = await requireConnect(request, 'conversation-list', 120);
   if ('response' in gate) return gate.response;
   const userId = new mongoose.Types.ObjectId(gate.context.user.id);
-  const conversations = await Conversation.find({ memberIds: userId }).sort({ lastMessageAt: -1, updatedAt: -1 }).limit(100).lean();
+  const [allConversations, blocks] = await Promise.all([
+    Conversation.find({ memberIds: userId }).sort({ lastMessageAt: -1, updatedAt: -1 }).limit(100).lean(),
+    SocialBlock.find({ $or: [{ blockerId: userId }, { blockedId: userId }] }).select('blockerId blockedId').lean(),
+  ]);
+  const blockedIds = blocks.map(block => block.blockerId.equals(userId) ? block.blockedId : block.blockerId);
+  const conversations = allConversations.filter(conversation => conversation.type !== 'direct' ||
+    !conversation.memberIds.some(id => !id.equals(userId) && blockedIds.some(blockedId => blockedId.equals(id))));
   const otherIds = [...new Set(conversations.flatMap(item => item.memberIds.filter(id => !id.equals(userId)).map(id => id.toString())))];
   const peers = await User.find({ _id: { $in: otherIds } }).select('_id fullName').lean();
   const profiles = await Profile.find({ userId: { $in: otherIds } }).select('userId displayName avatarUrl').lean();

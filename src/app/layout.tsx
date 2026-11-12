@@ -3,6 +3,7 @@ import './globals.css';
 import './create.css';
 import './build.css';
 import './discover.css';
+import './social/social.css';
 
 export const metadata: Metadata = {
   title: {

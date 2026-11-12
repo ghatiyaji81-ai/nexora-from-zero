@@ -5,6 +5,7 @@ import { connectToDatabase } from '@/lib/server/db';
 import { jsonResponse, requestIsSameOrigin } from '@/lib/server/http';
 import { consumeRateLimit } from '@/lib/server/auth-rate-limit';
 import { Conversation, type ConversationRecord } from '@/models/conversation';
+import { hasSocialBlockBetween } from '@/lib/server/social';
 
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
@@ -22,7 +23,14 @@ export function objectId(value: string | null | undefined) {
 export async function memberConversation(userId: string, conversationId: string) {
   const id = objectId(conversationId);
   if (!id) return null;
-  return Conversation.findOne({ _id: id, memberIds: new mongoose.Types.ObjectId(userId) });
+  const viewerId = new mongoose.Types.ObjectId(userId);
+  const conversation = await Conversation.findOne({ _id: id, memberIds: viewerId });
+  if (!conversation) return null;
+  if (conversation.type === 'direct') {
+    const otherMember = conversation.memberIds.find(memberId => !memberId.equals(viewerId));
+    if (otherMember && await hasSocialBlockBetween(viewerId, otherMember)) return null;
+  }
+  return conversation;
 }
 
 export async function requireConnect(request: Request, scope: string, limit = 90) {
@@ -50,7 +58,7 @@ export function asConversationId(conversation: ConversationRecord) {
 export async function findConversationFor(context: AuthenticatedContext, id: string) {
   const parsedId = objectId(id);
   if (!parsedId) return { error: jsonResponse({ error: 'Conversation not found.' }, 404) };
-  const conversation = await Conversation.findOne({ _id: parsedId, memberIds: new mongoose.Types.ObjectId(context.user.id) });
+  const conversation = await memberConversation(context.user.id, parsedId.toString());
   if (!conversation) return { error: jsonResponse({ error: 'Conversation not found.' }, 404) };
   return { conversation };
 }
