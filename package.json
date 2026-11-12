@@ -7,8 +7,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "node --conditions=react-server --import tsx --test tests/auth-security.test.ts tests/recovery-email.test.ts tests/think-provider.test.ts tests/think-documents.test.ts tests/speak-audio.test.ts tests/create.test.ts",
-    "test:integration": "node --conditions=react-server --import tsx --test --test-concurrency=1 tests/auth-workflow.test.ts tests/connect-workflow.test.ts tests/think-workflow.test.ts tests/speak-workflow.test.ts tests/create-workflow.test.ts",
+    "test": "node --conditions=react-server --import tsx --test tests/auth-security.test.ts tests/recovery-email.test.ts tests/think-provider.test.ts tests/think-documents.test.ts tests/speak-audio.test.ts tests/create.test.ts tests/build.test.ts",
+    "test:integration": "node --conditions=react-server --import tsx --test --test-concurrency=1 tests/auth-workflow.test.ts tests/connect-workflow.test.ts tests/think-workflow.test.ts tests/speak-workflow.test.ts tests/create-workflow.test.ts tests/build-workflow.test.ts",
     "db:create-indexes": "node --conditions=react-server --import tsx scripts/create-indexes.ts"
   },
   "dependencies": {

@@ -3,7 +3,7 @@ node_modules/
 .nexora-build/
 .local/
 out/
-build/
+/build/
 coverage/
 *.tsbuildinfo
 .env*

@@ -20,12 +20,17 @@ import { CreateProject } from '@/models/create-project';
 import { CreateProjectVersion } from '@/models/create-project-version';
 import { CreateAsset } from '@/models/create-asset';
 import { CreateExport } from '@/models/create-export';
+import { BuildProject } from '@/models/build-project';
+import { BuildProjectFile } from '@/models/build-project-file';
+import { BuildProjectFileVersion } from '@/models/build-project-file-version';
+import { BuildApproval } from '@/models/build-approval';
+import { BuildSecurityScan } from '@/models/build-security-scan';
 
 loadEnvConfig(process.cwd());
 
 async function main() {
   await connectToDatabase();
-  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument, SpeakRecording, CreateProject, CreateProjectVersion, CreateAsset, CreateExport]) {
+  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument, SpeakRecording, CreateProject, CreateProjectVersion, CreateAsset, CreateExport, BuildProject, BuildProjectFile, BuildProjectFileVersion, BuildApproval, BuildSecurityScan]) {
     await model.createIndexes();
     console.log(`Created indexes for ${model.collection.collectionName}.`);
   }

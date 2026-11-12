@@ -13,6 +13,7 @@ const commands = [
   { label: 'Open Think', detail: 'AI workspace and conversations', href: '/think' },
   { label: 'Open Speak', detail: 'Voice intelligence and recordings', href: '/speak' },
   { label: 'Open Create', detail: 'Projects, design and media studios', href: '/create' },
+  { label: 'Open Build', detail: 'Projects, code, review and safe previews', href: '/build' },
   { label: 'Open focus room', detail: 'Jump to the local focus timer', href: '/#focus' },
   { label: 'View product map', detail: 'See what is planned', href: '/#roadmap' },
   { label: 'Sign in', detail: 'Open your private workspace', href: '/login' },
@@ -146,6 +147,11 @@ export function AppShell({ children }: AppShellProps) {
             <span>Create</span>
             <span className="nav-link-arrow" aria-hidden="true">↗</span>
           </Link>
+          <Link className={`nav-link${pathname.startsWith('/build') ? ' nav-link-active' : ''}`} href="/build">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-2-14-4 18" /></svg>
+            <span>Build</span>
+            <span className="nav-link-arrow" aria-hidden="true">↗</span>
+          </Link>
         </nav>
 
         <div className="sidebar-spacer" />
@@ -166,7 +172,7 @@ export function AppShell({ children }: AppShellProps) {
           <button className="mobile-menu-button icon-button" type="button" onClick={() => setMobileNavOpen(value => !value)} aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileNavOpen}>
             <svg viewBox="0 0 24 24" aria-hidden="true">{mobileNavOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}</svg>
           </button>
-          <div className="breadcrumb"><span>Personal space</span><span className="breadcrumb-slash">/</span><strong>{pathname.startsWith('/connect') ? 'Connect' : pathname.startsWith('/think') ? 'Think' : pathname.startsWith('/speak') ? 'Speak' : pathname.startsWith('/create') ? 'Create' : 'Overview'}</strong></div>
+          <div className="breadcrumb"><span>Personal space</span><span className="breadcrumb-slash">/</span><strong>{pathname.startsWith('/connect') ? 'Connect' : pathname.startsWith('/think') ? 'Think' : pathname.startsWith('/speak') ? 'Speak' : pathname.startsWith('/create') ? 'Create' : pathname.startsWith('/build') ? 'Build' : 'Overview'}</strong></div>
           <div className="topbar-actions">
             <button className="search-trigger" type="button" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></svg>
