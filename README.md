@@ -45,4 +45,6 @@ npm run build
 
 Build diagnosis on this Windows environment: the initial Turbopack build failed in its CSS worker. Restricted build attempts then failed intermittently while creating route output directories such as `.next/server/app/workspace` and `.next/server/app/signup`; direct Node directory creation succeeded and project ACLs allowed modification. I found and stopped a stale NEXORA `next dev --webpack` process on port 3000, but the restricted build still failed afterward. Windows Defender and McAfee are registered on the machine, though I found no evidence that either held these paths. A clean `npm run build` completed when run with normal Windows process permissions using Next's isolated `.nexora-build` output directory. The script selects webpack and the isolated directory for this environment.
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for current boundaries and the staged implementation plan. Planned modules are presented as roadmap information, not as working features.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for current boundaries and the staged implementation plan. Roadmap labels do not imply that planned features are already available.
+
+CREATE adds authenticated creative projects, private assets, local design/image/media editors, and THINK-backed writing where the existing provider is configured. See [docs/CREATE.md](./docs/CREATE.md) for the implemented features, limits, and provider status.

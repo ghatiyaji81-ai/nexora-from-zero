@@ -16,12 +16,16 @@ import { ThinkMessage } from '@/models/think-message';
 import { ThinkPreference } from '@/models/think-preference';
 import { ThinkDocument } from '@/models/think-document';
 import { SpeakRecording } from '@/models/speak-recording';
+import { CreateProject } from '@/models/create-project';
+import { CreateProjectVersion } from '@/models/create-project-version';
+import { CreateAsset } from '@/models/create-asset';
+import { CreateExport } from '@/models/create-export';
 
 loadEnvConfig(process.cwd());
 
 async function main() {
   await connectToDatabase();
-  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument, SpeakRecording]) {
+  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument, SpeakRecording, CreateProject, CreateProjectVersion, CreateAsset, CreateExport]) {
     await model.createIndexes();
     console.log(`Created indexes for ${model.collection.collectionName}.`);
   }

@@ -4,7 +4,7 @@ export const productMap = [
   { name: 'SOCIAL', summary: 'A personal feed, profiles, and creator discovery.', status: 'Planned' },
   { name: 'THINK', summary: 'A multi-model intelligence workspace for conversation, research, and documents.', status: 'In progress' },
   { name: 'SPEAK', summary: 'Browser-native voice interaction connected to private THINK conversations.', status: 'In progress' },
-  { name: 'CREATE', summary: 'Notes, documents, and creative work.', status: 'Planned' },
+  { name: 'CREATE', summary: 'Private projects, local image and design editing, documents, presentations, media and THINK-assisted writing.', status: 'In progress' },
   { name: 'BUILD', summary: 'Projects, code, review, and safe previews.', status: 'Planned' },
   { name: 'DISCOVER', summary: 'Find information, services, and things worth knowing.', status: 'Planned' },
   { name: 'PRODUCTIVITY', summary: 'Tasks and planning that respect your attention.', status: 'Planned' },
