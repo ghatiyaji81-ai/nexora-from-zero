@@ -5,6 +5,8 @@ import { BuildArchiveError, readBuildZip, writeBuildZip } from '../src/lib/build
 import { BuildExecutionUnavailableError, clipBuildOutput, createUnavailableBuildExecutionProvider } from '../src/lib/server/build-execution-provider';
 import { BUILD_DOCKER_RESOURCE_POLICY, detectBuildRuntime, isValidBuildBranch, MAX_BUILD_COMMAND_TIMEOUT_MS, parseBuildCommand } from '../src/lib/build-execution-policy';
 import { BuildGitHubUnavailableError, createUnavailableBuildGitHubProvider } from '../src/lib/server/build-github-provider';
+import { detectBuildPreviewTarget, isSafeBuildPreviewUrl, parseBuildRuntimeDiagnostic } from '../src/lib/build-preview';
+import { BuildPreviewUnavailableError, createUnavailableBuildPreviewProvider } from '../src/lib/server/build-preview-provider';
 
 test('BUILD starters initialize actual files and avoid exposing execution claims', () => {
   assert.equal(BUILD_TEMPLATES.length, 15);
@@ -93,6 +95,76 @@ test('BUILD GitHub adapter fails explicitly until server-side credentials are co
   assert.equal(provider.isConfigured(), false);
   await assert.rejects(provider.listRepositories(), BuildGitHubUnavailableError);
   await assert.rejects(provider.push('project', 'main', true), BuildGitHubUnavailableError);
+});
+
+test('BUILD preview detection uses project manifests and only reports known framework start scripts', () => {
+  assert.deepEqual(detectBuildPreviewTarget([
+    { path: 'package.json', content: JSON.stringify({ scripts: { dev: 'next dev' }, dependencies: { next: '16', react: '19' } }) },
+  ]), {
+    framework: 'nextjs', runtime: 'node', command: 'npm run dev', status: 'detected',
+    explanation: 'Next.js dependency and an application start script were detected.',
+  });
+  assert.equal(detectBuildPreviewTarget([
+    { path: 'package.json', content: JSON.stringify({ scripts: { dev: 'vite --host' }, devDependencies: { vite: '6' } }) },
+  ]).framework, 'vite');
+  assert.equal(detectBuildPreviewTarget([{ path: 'index.html', content: '<main>App</main>' }]).runtime, 'static');
+  assert.equal(detectBuildPreviewTarget([
+    { path: 'package.json', content: JSON.stringify({ dependencies: { next: '16' } }) },
+  ]).status, 'unsupported');
+  assert.equal(detectBuildPreviewTarget([
+    { path: 'package.json', content: '{broken' },
+  ]).status, 'unsupported');
+});
+
+test('BUILD preview gateway URL policy blocks non-HTTPS, private, mismatched and credentialed URLs', () => {
+  const origin = 'https://preview.example.com';
+  assert.equal(isSafeBuildPreviewUrl('https://preview.example.com/p/abc/index.html', origin), true);
+  for (const url of [
+    'http://preview.example.com/p/abc',
+    'https://evil.example.com/p/abc',
+    'https://127.0.0.1/p/abc',
+    'https://10.0.0.2/p/abc',
+    'https://169.254.169.254/latest/meta-data',
+    'https://100.100.100.200/p/abc',
+    'https://[::1]/p/abc',
+    'https://host/p/abc',
+    'https://metadata.google.internal/',
+    'https://user:pass@preview.example.com/p/abc',
+    'https://preview.example.com/p/abc?token=secret',
+  ]) assert.equal(isSafeBuildPreviewUrl(url, origin), false, url);
+});
+
+test('BUILD diagnostics come from failed command evidence and retain parsed source location', () => {
+  const diagnostic = parseBuildRuntimeDiagnostic({
+    id: 'log-id', sessionId: 'session-id', command: 'npm run build',
+    stdout: '', stderr: 'src/page.tsx(12,4): error TS2322: Type mismatch\nmore details',
+    exitCode: 2, createdAt: new Date('2026-01-02T03:04:05.000Z'),
+  });
+  assert.equal(diagnostic?.source, 'build');
+  assert.equal(diagnostic?.filePath, 'src/page.tsx');
+  assert.equal(diagnostic?.line, 12);
+  assert.equal(diagnostic?.column, 4);
+  assert.match(diagnostic?.stackTrace ?? '', /Type mismatch/);
+  assert.equal(parseBuildRuntimeDiagnostic({
+    id: 'ok', sessionId: 'session', command: 'npm run build', stdout: 'done',
+    stderr: '', exitCode: 0, createdAt: new Date(),
+  }), null);
+});
+
+test('BUILD preview provider fails closed without a separately secured gateway', async () => {
+  const provider = createUnavailableBuildPreviewProvider();
+  assert.equal(provider.isConfigured(), false);
+  assert.equal(await provider.checkAvailability(), false);
+  await assert.rejects(provider.start({
+    previewId: 'preview', executionSessionId: 'execution', runtime: 'node',
+    framework: 'vite', command: 'npm run dev',
+  }), BuildPreviewUnavailableError);
+  await assert.rejects(provider.restart('preview', {
+    previewId: 'preview', executionSessionId: 'execution', runtime: 'node',
+    framework: 'vite', command: 'npm run dev',
+  }), BuildPreviewUnavailableError);
+  await assert.rejects(provider.stop('preview'), BuildPreviewUnavailableError);
+  await assert.rejects(provider.reload('preview'), BuildPreviewUnavailableError);
 });
 
 test('BUILD ZIP export and import preserve multiple safe UTF-8 source files', () => {

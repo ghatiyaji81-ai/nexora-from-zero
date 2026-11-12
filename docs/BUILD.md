@@ -17,14 +17,20 @@ BUILD is the authenticated engineering workspace at `/build`. It is an increment
 - Synchronize sandbox source files back to private project storage after an explicit confirmation. Saved and deleted files retain BUILD file history. A revision check detects editor changes made after session start. Git metadata and generated directories are excluded; symlinks, binary files and oversized workspaces are rejected.
 - Use Git inside an active isolated session for initialization, status, diffs, stage/unstage, commit, history, branch create/switch/compare, and explicitly approved per-file restore. Git commands are fixed argument arrays, not shell input. Commit author identity is supplied per commit and is not stored as a credential.
 - View private command and Git execution logs by project owner.
+- Detect likely Next.js, Vite, Create React App, supported Node web-server, and static HTML projects from saved manifests/entry files. Detection reports a candidate start script; it does not claim the app is running.
+- Record non-zero isolated command outcomes as owner-scoped debugging diagnostics. Recognized compiler locations are extracted from actual command output; otherwise the bounded captured output, command, exit code, and session are shown. Diagnostics can be sent to existing THINK only after the user selects Explain or Prepare fix and then explicitly submits the prompt. Any code proposal still uses the existing before/after review and approval path.
+- Provide owner-scoped preview status/action APIs and UI for start/restart/stop/reload, but currently fail closed because no isolated preview gateway is configured. The UI explicitly reports that live rendering is unavailable; it never exposes a container port or fabricates a running state.
 
 ## Not available (not simulated)
 
 - Git is session-local: stopping a session deletes its in-memory workspace and `.git` history after source synchronization. Commit/branch metadata is not restored into later sessions. Persistent repository bundles, GitHub account credentials, repository listing, and remote fetch/pull/push synchronization are not implemented.
 - The code editor is a browser-native text editor with line numbers, not Monaco; language syntax highlighting, language-server diagnostics, formatting, and split-pane editing are unavailable.
-- Supervised agent roles/task queues, AI debugging workflows, and a full project activity timeline are not implemented.
+- Supervised agent roles/task queues and a full project activity timeline are not implemented.
 - Docker sandbox execution is disabled by default and was not live-tested in this environment. Without a configured Docker daemon and preloaded image, session creation reports unavailable; BUILD editing, THINK proposals, history and ZIP functions remain available.
-- This milestone does not provide live preview, runtime debugging, Docker network access, package downloads, GitHub credentials/remotes, deployment, or deployment rollback. Project changes inside a session are not saved to MongoDB until the user synchronizes them; `.git` data is never synchronized.
+- Live browser rendering, a preview gateway, runtime stdout/stderr monitoring, browser console capture, resource telemetry, and actual app process start/stop are not implemented. Existing project containers have `--network none` and no published ports. The preview adapter intentionally returns unavailable; a real gateway and isolated origin/domain are required before the UI enables preview actions. Error history covers failed approved terminal/build/test commands only, not errors from an unmonitored running app.
+- Runtime-framework detection is limited to recognizable Next.js, Vite, Create React App, Express/Fastify/Koa/Hono Node projects, and static `index.html`. Detection does not imply the framework's dependencies are installed or that a preview command works. Python, Java, and other application preview adapters are unsupported.
+- Docker sandbox execution is disabled by default and was not live-tested in this environment. Without a configured Docker daemon and preloaded image, session creation reports unavailable; BUILD editing, THINK proposals, history and ZIP functions remain available.
+- Docker network access, package downloads, GitHub credentials/remotes, deployment, and deployment rollback are unavailable. Project changes inside a session are not saved to MongoDB until the user synchronizes them; `.git` data is never synchronized.
 - Dependency/outdated-package and vulnerability checks are not available. The static scanner has a small heuristic ruleset, may miss issues or raise false positives, and does not upload source code to an external scanner.
 - PPTX-style export, automated test discovery/history, debugger integration, and role-based permissions are not available.
 - Template files are initialized locally, but their dependencies are not installed. Runtime and build commands cannot be run in BUILD.
@@ -38,6 +44,8 @@ BUILD is the authenticated engineering workspace at `/build`. It is an increment
 - `BuildApproval` records pending/applied/rejected/stale THINK edits in `build_approvals`; proposed text is private GridFS content, not copied into ordinary MongoDB documents.
 - `BuildSecurityScan` stores bounded heuristic findings in `build_security_scans`.
 - `BuildExecutionSession`, `BuildExecutionLog`, and `BuildGitRepository` store owner/project-scoped session state, bounded command/Git output, and per-session repository status. No container secrets or GitHub credentials are stored.
+- `BuildPreviewSession` reserves owner/project/execution-session-scoped metadata for a future gateway-backed preview; provider references are excluded from normal reads. No preview sessions are created while the gateway is unavailable.
+- `BuildRuntimeError` stores bounded diagnostics only for non-zero execution log outcomes. It does not claim to monitor an active server process. `BuildExecutionLog` remains the source evidence for command output.
 - Declared compound indexes are registered in `scripts/create-indexes.ts`; run `npm run db:create-indexes` when deploying. Index creation and MongoDB workflows require the configured MongoDB replica set used by the rest of NEXORA.
 - GridFS project-file bodies are UTF-8 text. Content is served only through authenticated API routes after owner checks. Project export responses are private and non-cacheable.
 
@@ -57,7 +65,9 @@ BUILD is the authenticated engineering workspace at `/build`. It is an increment
 - `POST /api/build/projects/[projectId]/scan`: bounded static analysis.
 - `GET/POST /api/build/projects/[projectId]/execution`: list private session/log history; start, run one allowlisted approved offline command, synchronize source with explicit approval, or stop and remove an isolated session.
 - `POST /api/build/projects/[projectId]/git`: run a validated local Git operation in an active owned session.
-- `GET /api/build/providers`: truthful THINK and unavailable integration status.
+- `GET/POST /api/build/projects/[projectId]/preview`: inspect detected application type and owned sessions, or request a preview lifecycle action. Lifecycle actions return unavailable until a secure gateway is configured.
+- `GET /api/build/projects/[projectId]/debug`: search and list actual failed-command diagnostics belonging to the project owner.
+- `GET /api/build/providers`: truthful THINK, sandbox, preview, GitHub, and deployment integration status.
 
 ## THINK, secrets, and approvals
 
@@ -66,6 +76,12 @@ BUILD does not implement its own model provider. A user action creates a normal 
 AI output is treated as untrusted. A code-change proposal must parse as one bounded JSON object targeting the currently selected path. Before/after content is shown in BUILD, and a separate explicit approval is required to apply it. The apply API checks the project owner and base revision. Agents do not run, approve, or grant their own permissions. Pending proposal expiry is not currently automated; users may reject it or delete the project.
 
 Docker containers receive no NEXORA application environment variables, host mounts, network, Docker socket, or provider credentials. The only writable paths are size-bounded tmpfs mounts; the workspace is not persisted by Docker after stop. The Docker daemon and preloaded images remain trusted infrastructure. Standard containers share the host kernel and are not a complete defense against a kernel or daemon escape; for hostile multi-tenant workloads, use a separately managed VM/microVM or remote sandbox service. GitHub and deployment credentials are not configured or stored.
+
+### Preview gateway security boundary
+
+The current Docker execution provider is deliberately not a preview server: it creates network-disabled containers and publishes no ports. Do not bind a user container to a public interface, proxy arbitrary user-supplied URLs, or host the preview on the authenticated NEXORA origin. Live preview requires a separately deployed gateway with an isolated origin/domain, owner/session authorization on every request, fixed gateway-issued targets, bounded request/response sizes, blocked private/metadata destinations, time/resource limits, and cleanup of expired sessions. `isSafeBuildPreviewUrl` is only a strict URL-policy helper; it is not a network proxy or a substitute for DNS/rebinding controls. Production multi-tenant workloads should use a separately managed VM/microVM or stronger remote sandbox; Docker shares the host kernel.
+
+Preview startup must use the exact saved revision represented by an owned active execution session. The API checks the session source snapshot against current file IDs/revisions and rejects stale sessions. The editor saves pending text before a preview request; sandbox synchronization remains a separate explicit action.
 
 ## Setup and checks
 
@@ -79,7 +95,7 @@ npm run test:integration
 npm run build
 ```
 
-`npm test` includes BUILD command-policy, runtime detection, branch validation, template/path/scanner, and ZIP integrity/traversal unit tests. `npm run test:integration` includes authenticated project/file/snapshot/proposal/scan/ZIP ownership workflows and requires a running app plus a MongoDB replica set. Docker execution and live Git actions require a separately configured Docker daemon and preloaded images; they were not verified in the current environment.
+`npm test` includes BUILD command-policy, preview target/URL/error parsing, provider-unavailable, runtime detection, branch validation, template/path/scanner, and ZIP integrity/traversal unit tests. `npm run test:integration` includes authenticated project/file/snapshot/proposal/scan/ZIP ownership workflows and requires a running app plus a MongoDB replica set. Docker execution and live Git actions require a separately configured Docker daemon and preloaded images; they were not verified in the current environment. Live preview and MongoDB ownership/index integration remain unverified when no gateway or database is configured.
 
 ## Extension points
 

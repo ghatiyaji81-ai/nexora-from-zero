@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { z } from 'zod';
 import { detectBuildRuntime, MAX_BUILD_COMMAND_TIMEOUT_MS, parseBuildCommand } from '@/lib/build-execution-policy';
+import { parseBuildRuntimeDiagnostic } from '@/lib/build-preview';
 import { BuildExecutionTimeoutError, BuildExecutionUnavailableError, clipBuildOutput, getBuildExecutionProvider } from '@/lib/server/build-execution-provider';
 import { requireBuild } from '@/lib/server/build';
 import { readBuildFile } from '@/lib/server/build-files';
@@ -10,6 +11,7 @@ import { BuildExecutionSession } from '@/models/build-execution-session';
 import { BuildProject } from '@/models/build-project';
 import { BuildProjectFile } from '@/models/build-project-file';
 import { BuildProjectFileVersion } from '@/models/build-project-file-version';
+import { BuildRuntimeError } from '@/models/build-runtime-error';
 import { deleteBuildBlob, MAX_BUILD_FILE_BYTES, retainBuildFileVersion, storeBuildFile } from '@/lib/server/build-files';
 import { safeBuildPath } from '@/lib/build';
 
@@ -25,6 +27,42 @@ const commandSchema = z.object({
 const stopSchema = z.object({ action: z.literal('stop'), sessionId: z.string().regex(/^[a-f\d]{24}$/i) }).strict();
 const startSchema = z.object({ action: z.literal('start') }).strict();
 const syncSchema = z.object({ action: z.literal('sync'), sessionId: z.string().regex(/^[a-f\d]{24}$/i), approved: z.literal(true) }).strict();
+
+async function storeBuildRuntimeDiagnostic(ownerId: mongoose.Types.ObjectId, projectId: mongoose.Types.ObjectId, log: {
+  _id: mongoose.Types.ObjectId;
+  sessionId: mongoose.Types.ObjectId;
+  command: string;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  createdAt: Date;
+}) {
+  const diagnostic = parseBuildRuntimeDiagnostic({
+    id: log._id.toString(),
+    sessionId: log.sessionId.toString(),
+    command: log.command,
+    stdout: log.stdout,
+    stderr: log.stderr,
+    exitCode: log.exitCode,
+    createdAt: log.createdAt,
+  });
+  if (!diagnostic || diagnostic.exitCode < 1) return;
+  try {
+    await BuildRuntimeError.updateOne(
+      { sourceLogId: log._id },
+      { $setOnInsert: {
+        ownerId, projectId, executionSessionId: log.sessionId, sourceLogId: log._id,
+        source: diagnostic.source, severity: diagnostic.severity, command: diagnostic.command,
+        message: diagnostic.message, filePath: diagnostic.filePath, line: diagnostic.line,
+        column: diagnostic.column, stackTrace: diagnostic.stackTrace,
+        exitCode: diagnostic.exitCode, occurredAt: new Date(diagnostic.occurredAt),
+      } },
+      { upsert: true },
+    );
+  } catch (error) {
+    console.error('BUILD runtime diagnostic could not be persisted.', { logId: log._id.toString(), errorName: error instanceof Error ? error.name : 'UnknownError' });
+  }
+}
 
 export async function GET(request: Request, route: Context) {
   const gate = await requireBuild(request, 'execution-history');
@@ -233,15 +271,17 @@ export async function POST(request: Request, route: Context) {
       stdout: clipBuildOutput(result.stdout), stderr: clipBuildOutput(result.stderr),
       exitCode: result.exitCode, durationMs: result.durationMs,
     });
+    await storeBuildRuntimeDiagnostic(ownerId, new mongoose.Types.ObjectId(projectId), log);
     await BuildExecutionSession.updateOne({ _id: session._id, ownerId }, { $set: { busy: false } });
     return jsonResponse({ result: { ...result, logId: log._id.toString() } });
   } catch (error) {
     const timedOut = error instanceof BuildExecutionTimeoutError;
-    await BuildExecutionLog.create({
+    const log = await BuildExecutionLog.create({
       ownerId, projectId, sessionId: session._id, kind: 'command', command: command.data.command,
       stdout: '', stderr: error instanceof Error ? error.message : 'The isolated command failed.',
       exitCode: timedOut ? 124 : -1, durationMs: Date.now() - startedAt,
     });
+    await storeBuildRuntimeDiagnostic(ownerId, new mongoose.Types.ObjectId(projectId), log);
     await BuildExecutionSession.updateOne(
       { _id: session._id, ownerId },
       timedOut ? { $set: { busy: false, status: 'stopped', stoppedAt: new Date() } } : { $set: { busy: false } },
