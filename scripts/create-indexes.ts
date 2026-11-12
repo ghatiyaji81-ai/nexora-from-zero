@@ -25,12 +25,19 @@ import { BuildProjectFile } from '@/models/build-project-file';
 import { BuildProjectFileVersion } from '@/models/build-project-file-version';
 import { BuildApproval } from '@/models/build-approval';
 import { BuildSecurityScan } from '@/models/build-security-scan';
+import { DiscoverSearch } from '@/models/discover-search';
+import { DiscoverSource } from '@/models/discover-source';
+import { DiscoverCollection } from '@/models/discover-collection';
+import { DiscoverBookmark } from '@/models/discover-bookmark';
+import { DiscoverResearchTask } from '@/models/discover-research-task';
+import { DiscoverResearchReport } from '@/models/discover-research-report';
+import { DiscoverEvidence } from '@/models/discover-evidence';
 
 loadEnvConfig(process.cwd());
 
 async function main() {
   await connectToDatabase();
-  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument, SpeakRecording, CreateProject, CreateProjectVersion, CreateAsset, CreateExport, BuildProject, BuildProjectFile, BuildProjectFileVersion, BuildApproval, BuildSecurityScan]) {
+  for (const model of [User, Profile, Permission, Session, PasswordResetToken, AuthRateLimit, Conversation, Message, Presence, TypingState, ThinkConversation, ThinkMessage, ThinkPreference, ThinkDocument, SpeakRecording, CreateProject, CreateProjectVersion, CreateAsset, CreateExport, BuildProject, BuildProjectFile, BuildProjectFileVersion, BuildApproval, BuildSecurityScan, DiscoverSearch, DiscoverSource, DiscoverCollection, DiscoverBookmark, DiscoverResearchTask, DiscoverResearchReport, DiscoverEvidence]) {
     await model.createIndexes();
     console.log(`Created indexes for ${model.collection.collectionName}.`);
   }
