@@ -13,6 +13,9 @@ import { BuildExecutionSession } from '@/models/build-execution-session';
 import { BuildGitRepository } from '@/models/build-git-repository';
 import { BuildPreviewSession } from '@/models/build-preview-session';
 import { BuildRuntimeError } from '@/models/build-runtime-error';
+import { BuildTestRun } from '@/models/build-test-run';
+import { BuildDependencySnapshot } from '@/models/build-dependency-snapshot';
+import { BuildDependencyOperation } from '@/models/build-dependency-operation';
 
 export const runtime = 'nodejs';
 type Context = { params: Promise<{ projectId: string }> };
@@ -70,15 +73,19 @@ export async function DELETE(request: Request, route: Context) {
   ) {
     return jsonResponse({ error: 'Stop isolated execution and preview sessions before deleting this project. Synchronize any wanted workspace changes first.' }, 409);
   }
-  const [files, versions, approvals] = await Promise.all([
+  const [files, versions, approvals, dependencySnapshots] = await Promise.all([
     BuildProjectFile.find({ ownerId, projectId }).select('fileId').lean(),
     BuildProjectFileVersion.find({ ownerId, projectId }).select('fileId').lean(),
     BuildApproval.find({ ownerId, projectId }).select('proposalFileId').lean(),
+    BuildDependencySnapshot.find({ ownerId, projectId }).select('files.fileId').lean(),
     BuildExecutionSession.deleteMany({ ownerId, projectId }),
     BuildExecutionLog.deleteMany({ ownerId, projectId }),
     BuildGitRepository.deleteMany({ ownerId, projectId }),
     BuildPreviewSession.deleteMany({ ownerId, projectId }),
     BuildRuntimeError.deleteMany({ ownerId, projectId }),
+    BuildTestRun.deleteMany({ ownerId, projectId }),
+    BuildDependencySnapshot.deleteMany({ ownerId, projectId }),
+    BuildDependencyOperation.deleteMany({ ownerId, projectId }),
   ]);
   await Promise.all([
     BuildProjectFile.deleteMany({ ownerId, projectId }),
@@ -89,6 +96,9 @@ export async function DELETE(request: Request, route: Context) {
   ]);
   const blobIds = new Map([...files, ...versions].map(file => [file.fileId.toString(), file.fileId]));
   for (const approval of approvals) blobIds.set(approval.proposalFileId.toString(), approval.proposalFileId);
+  for (const snapshot of dependencySnapshots) {
+    for (const file of snapshot.files) blobIds.set(file.fileId.toString(), file.fileId);
+  }
   const results = await Promise.allSettled([...blobIds.values()].map(deleteBuildBlob));
   if (results.some(result => result.status === 'rejected')) {
     console.error('BUILD project file cleanup was incomplete.', { projectId, failedBlobs: results.filter(result => result.status === 'rejected').length });

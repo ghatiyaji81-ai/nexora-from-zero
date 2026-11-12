@@ -7,6 +7,7 @@ import { BUILD_DOCKER_RESOURCE_POLICY, detectBuildRuntime, isValidBuildBranch, M
 import { BuildGitHubUnavailableError, createUnavailableBuildGitHubProvider } from '../src/lib/server/build-github-provider';
 import { detectBuildPreviewTarget, isSafeBuildPreviewUrl, parseBuildRuntimeDiagnostic } from '../src/lib/build-preview';
 import { BuildPreviewUnavailableError, createUnavailableBuildPreviewProvider } from '../src/lib/server/build-preview-provider';
+import { buildTestCommand, detectBuildPackageManager, detectBuildTestTarget, inspectBuildDependencies, parseBuildTestOutput } from '../src/lib/build-testing';
 
 test('BUILD starters initialize actual files and avoid exposing execution claims', () => {
   assert.equal(BUILD_TEMPLATES.length, 15);
@@ -165,6 +166,79 @@ test('BUILD preview provider fails closed without a separately secured gateway',
   }), BuildPreviewUnavailableError);
   await assert.rejects(provider.stop('preview'), BuildPreviewUnavailableError);
   await assert.rejects(provider.reload('preview'), BuildPreviewUnavailableError);
+});
+
+test('BUILD test discovery requires declared tools and builds safe selected-test commands', () => {
+  const vitest = detectBuildTestTarget([
+    { path: 'package.json', content: JSON.stringify({ scripts: { test: 'vitest' }, devDependencies: { vitest: '^3.0.0' } }) },
+    { path: 'vitest.config.ts', content: 'export default {}' },
+    { path: 'src/math.test.ts', size: 120 },
+  ]);
+  assert.equal(vitest.framework, 'vitest');
+  assert.equal(vitest.declared, true);
+  assert.deepEqual(buildTestCommand(vitest), ['npm', 'run', 'test', '--', '--run']);
+  assert.deepEqual(buildTestCommand(vitest, 'src/math.test.ts'), ['npm', 'run', 'test', '--', '--run', 'src/math.test.ts']);
+  assert.equal(buildTestCommand(vitest, '../outside.ts'), null);
+  const missingTool = detectBuildTestTarget([
+    { path: 'package.json', content: JSON.stringify({ scripts: { test: 'jest' } }) },
+    { path: 'jest.config.js', content: 'module.exports = {}' },
+  ]);
+  assert.equal(missingTool.framework, 'jest');
+  assert.equal(missingTool.declared, false);
+  assert.equal(missingTool.command, null);
+  const python = detectBuildTestTarget([
+    { path: 'requirements.txt', content: 'pytest==8.3\n' },
+    { path: 'tests/test_api.py', size: 100 },
+  ]);
+  assert.equal(python.framework, 'pytest');
+  assert.deepEqual(buildTestCommand(python, 'tests/test_api.py'), ['python3', '-m', 'pytest', '-q', 'tests/test_api.py']);
+  const nodeTests = detectBuildTestTarget([
+    { path: 'package.json', content: JSON.stringify({ scripts: { test: 'node --test' } }) },
+    { path: 'test/math.test.js', size: 80 },
+  ]);
+  assert.equal(nodeTests.framework, 'node-test');
+  assert.deepEqual(buildTestCommand(nodeTests, 'test/math.test.js'), ['node', '--test', 'test/math.test.js']);
+  const maven = detectBuildTestTarget([
+    { path: 'pom.xml', content: '<project />' },
+    { path: 'src/test/java/org/example/ParserTest.java', size: 200 },
+  ]);
+  assert.equal(maven.framework, 'maven');
+  assert.deepEqual(buildTestCommand(maven, 'src/test/java/org/example/ParserTest.java'), ['mvn', '--offline', '-Dtest=ParserTest', 'test']);
+  const gradle = detectBuildTestTarget([
+    { path: 'build.gradle.kts', content: 'plugins {}' },
+    { path: 'src/test/java/org/example/ParserTest.java', size: 200 },
+  ]);
+  assert.equal(gradle.framework, 'gradle');
+  assert.deepEqual(buildTestCommand(gradle, 'src/test/java/org/example/ParserTest.java'), ['gradle', '--offline', 'test', '--tests', 'ParserTest']);
+});
+
+test('BUILD test result parsing reports only recognizable actual counts and failures', () => {
+  assert.deepEqual(parseBuildTestOutput('vitest', 'Tests  1 failed | 2 passed (3)\n✕ rejects malformed value'), {
+    total: 3, passed: 2, failed: 1, skipped: 0,
+    failures: [{ name: 'rejects malformed value', message: '' }],
+  });
+  assert.deepEqual(parseBuildTestOutput('pytest', '=== 1 failed, 4 passed, 1 skipped in 2.4s ==='), {
+    total: 6, passed: 4, failed: 1, skipped: 1, failures: [],
+  });
+  assert.deepEqual(parseBuildTestOutput('maven', 'Tests run: 5, Failures: 1, Errors: 0, Skipped: 2'), {
+    total: 5, passed: 2, failed: 1, skipped: 2, failures: [],
+  });
+  assert.equal(parseBuildTestOutput('jest', 'process did not start').total, null);
+});
+
+test('BUILD dependency inspection identifies package managers and reports only declared dependencies', () => {
+  const files = [
+    { path: 'package.json', content: JSON.stringify({ packageManager: 'pnpm@9.0.0', dependencies: { react: '^19' }, devDependencies: { vitest: '^3' } }) },
+    { path: 'pnpm-lock.yaml', content: 'lockfileVersion: 9' },
+  ];
+  assert.deepEqual(detectBuildPackageManager(files), { manager: 'pnpm', lockfile: 'pnpm-lock.yaml' });
+  const inspection = inspectBuildDependencies(files);
+  assert.equal(inspection.installed, 'unknown');
+  assert.equal(inspection.lockfilePresent, true);
+  assert.equal(inspection.dependencies.length, 2);
+  assert.equal(inspection.registry.available, false);
+  assert.equal(inspection.vulnerabilities.available, false);
+  assert.deepEqual(detectBuildPackageManager([{ path: 'requirements.txt', content: 'pytest==8.3' }]), { manager: 'pip', lockfile: null });
 });
 
 test('BUILD ZIP export and import preserve multiple safe UTF-8 source files', () => {

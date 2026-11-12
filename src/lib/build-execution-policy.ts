@@ -58,7 +58,7 @@ export function parseBuildCommand(input: string): ApprovedBuildCommand | null {
 }
 
 export function detectBuildRuntime(paths: string[]): 'node' | 'python' | 'java' | 'native' {
-  if (paths.some(path => /(^|\/)(pom\.xml|build\.gradle|settings\.gradle)$/.test(path) || /\.java$/i.test(path))) return 'java';
+  if (paths.some(path => /(^|\/)(pom\.xml|build\.gradle(?:\.kts)?|settings\.gradle(?:\.kts)?)$/.test(path) || /\.java$/i.test(path))) return 'java';
   if (paths.some(path => /(^|\/)(requirements\.txt|pyproject\.toml|Pipfile)$/.test(path) || /\.py$/i.test(path))) return 'python';
   if (paths.some(path => /\.(c|cc|cpp|h|hpp)$/i.test(path))) return 'native';
   return 'node';

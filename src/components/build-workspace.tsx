@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { BuildToolsPanel } from '@/components/build-tools-panel';
 import { BuildPreviewPanel } from '@/components/build-preview-panel';
+import { BuildTestPanel } from '@/components/build-test-panel';
+import { BuildDependencyPanel } from '@/components/build-dependency-panel';
 
 type BuildFile = { id: string; path: string; size: number; revision: number; updatedAt?: string };
 type OpenBuildFile = BuildFile & { content: string };
@@ -55,7 +57,7 @@ export function BuildWorkspace({ projectId }: { projectId: string }) {
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [scanFindings, setScanFindings] = useState<Finding[] | null>(null);
   const [scanNotice, setScanNotice] = useState('');
-  const [activePanel, setActivePanel] = useState<'output' | 'security' | 'history' | 'terminal' | 'testing' | 'git' | 'preview' | 'debug' | 'activity'>('output');
+  const [activePanel, setActivePanel] = useState<'output' | 'security' | 'history' | 'terminal' | 'testing' | 'git' | 'preview' | 'debug' | 'dependencies' | 'activity'>('output');
   const [historyVersions, setHistoryVersions] = useState<FileVersion[]>([]);
   const [historyNotice, setHistoryNotice] = useState('');
   const [projectSearchRefocus, setProjectSearchRefocus] = useState(0);
@@ -414,6 +416,33 @@ export function BuildWorkspace({ projectId }: { projectId: string }) {
     setAssistantAnswer('The diagnostic is only placed into the THINK prompt. Review it and explicitly submit to THINK; no files are sent before that action.');
   }
 
+  async function prepareTestRunRequest(run: { framework: string; command: string; selection: string | null; status: string; exitCode: number | null; stdout: string; stderr: string }, action: 'explain' | 'propose') {
+    if (!fileRef.current) {
+      setError('Open a relevant project file before preparing a THINK request for this test failure.');
+      return;
+    }
+    setAssistantMode(action);
+    setAssistantPrompt(`${action === 'explain' ? 'Explain' : 'Propose a reviewable fix for'} this actual ${run.framework} test run. Status: ${run.status}; exit code: ${run.exitCode ?? 'not available'}. Selection: ${run.selection ?? 'all tests'}. Command: ${run.command}. Captured output:\n${`${run.stderr}\n${run.stdout}`.slice(-300)}`.slice(0, 600));
+    setAssistantAnswer('The saved test output is prepared as THINK context. Review it and explicitly submit; only the currently open file or selection will also be sent.');
+  }
+
+  const beforeDependencyRestore = useCallback(async () => {
+    if (contentRef.current === fileRef.current?.content) return true;
+    await saveCurrent();
+    return contentRef.current === fileRef.current?.content;
+  }, [saveCurrent]);
+
+  const refreshAfterDependencyRestore = useCallback(async () => {
+    const updatedFiles = await loadFileList();
+    const active = fileRef.current;
+    if (!active || !/(^|\/)(package\.json|package-lock\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?|requirements\.txt|pyproject\.toml|pipfile|pipfile\.lock|uv\.lock|poetry\.lock|pom\.xml|build\.gradle(?:\.kts)?|settings\.gradle(?:\.kts)?)$/i.test(active.path)) return;
+    const changed = updatedFiles.find(file => file.path === active.path);
+    if (changed) {
+      fileRef.current = null;
+      await openFile(changed);
+    }
+  }, [loadFileList, openFile]);
+
   async function askThink() {
     if (!assistantPrompt.trim() || !fileRef.current || assistantBusy) return;
     const targetFile = fileRef.current;
@@ -576,12 +605,14 @@ export function BuildWorkspace({ projectId }: { projectId: string }) {
       </div>
 
       <section className="build-bottom-panel" aria-label="Project tools">
-        <nav className="build-bottom-tabs" aria-label="Output tools">{(['output', 'security', 'history', 'terminal', 'testing', 'git', 'preview', 'debug', 'activity'] as const).map(item => <button type="button" key={item} className={activePanel === item ? 'is-active' : ''} onClick={() => { setActivePanel(item); if (item === 'history') void loadHistory(); }}>{item === 'output' ? 'OUTPUT' : item.toUpperCase()}</button>)}</nav>
+        <nav className="build-bottom-tabs" aria-label="Output tools">{(['output', 'security', 'history', 'terminal', 'testing', 'dependencies', 'git', 'preview', 'debug', 'activity'] as const).map(item => <button type="button" key={item} className={activePanel === item ? 'is-active' : ''} onClick={() => { setActivePanel(item); if (item === 'history') void loadHistory(); }}>{item === 'output' ? 'OUTPUT' : item.toUpperCase()}</button>)}</nav>
         <div className="build-bottom-content">
           {activePanel === 'security' ? <div className="build-scan-content"><div><strong>Heuristic static analysis</strong><p>{scanNotice || 'Scans saved source files locally on the application server. Results are suggestions, not verified vulnerabilities.'}</p></div><button type="button" onClick={() => void runScan()}>Run scan</button>{scanFindings && (scanFindings.length ? <ul>{scanFindings.map((finding, index) => <li key={`${finding.rule}-${finding.path}-${finding.line}-${index}`}><strong className={`severity-${finding.severity}`}>{finding.severity.toUpperCase()}</strong><span>{finding.title} · {finding.path}:{finding.line}</span><small>{finding.explanation}</small></li>)}</ul> : <p>No heuristic matches were found. This is not a security certification.</p>)}</div>
             : activePanel === 'history' ? <div className="build-history-content"><div><strong>Private file snapshots</strong><p>{historyNotice || 'Snapshots are created when files are edited or deleted.'}</p></div><button type="button" onClick={() => void loadHistory()}>Refresh</button>{historyVersions.length > 0 && <ul>{historyVersions.map(version => <li key={version.id}><span><strong>{version.path}</strong><small>Revision {version.revision} · {new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(version.createdAt))}</small></span><button type="button" onClick={() => void restoreVersion(version)}>Restore</button></li>)}</ul>}</div>
             : activePanel === 'preview' || activePanel === 'debug' ? <BuildPreviewPanel projectId={projectId} mode={activePanel} disabled={isArchived} beforeStart={beforeWorkspaceSync} onExplain={(diagnostic, action) => void prepareDiagnosticRequest(diagnostic, action)} />
-            : activePanel === 'terminal' || activePanel === 'testing' || activePanel === 'git' ? <BuildToolsPanel projectId={projectId} mode={activePanel} disabled={isArchived} beforeSync={beforeWorkspaceSync} onSync={refreshAfterWorkspaceSync} />
+            : activePanel === 'testing' ? <BuildTestPanel projectId={projectId} disabled={isArchived} onExplain={(run, action) => void prepareTestRunRequest(run, action)} />
+            : activePanel === 'dependencies' ? <BuildDependencyPanel projectId={projectId} disabled={isArchived} beforeRestore={beforeDependencyRestore} onRestored={refreshAfterDependencyRestore} />
+            : activePanel === 'terminal' || activePanel === 'git' ? <BuildToolsPanel projectId={projectId} mode={activePanel} disabled={isArchived} beforeSync={beforeWorkspaceSync} onSync={refreshAfterWorkspaceSync} />
                 : activePanel === 'activity' ? <div className="build-unavailable"><strong>Project files and approved AI changes are owner-scoped.</strong><p>File history is available through the versions endpoint; a full activity timeline is not yet implemented.</p></div>
                   : <div className="build-unavailable"><strong>Ready for local editing.</strong><p>Build and test output comes only from actual isolated commands. Preview requires a separately secured gateway and is currently unavailable.</p></div>}
         </div>
