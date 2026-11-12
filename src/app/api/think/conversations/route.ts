@@ -8,13 +8,29 @@ import { ThinkPreference } from '@/models/think-preference';
 export const runtime = 'nodejs';
 const createSchema = z.object({ title: z.string().trim().min(1).max(100).optional(), model: z.string().trim().min(1).max(100).optional(), agent: z.string().optional() }).strict();
 
+function publicConversation(c: {
+  _id: mongoose.Types.ObjectId;
+  title: string;
+  provider: string;
+  modelId: string;
+  agent: string;
+  pinned: boolean;
+  archived: boolean;
+  lastMessageAt?: Date;
+  lastMessagePreview: string;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return { id: c._id.toString(), title: c.title, provider: c.provider, model: c.modelId, agent: c.agent, pinned: c.pinned, archived: c.archived, lastMessageAt: c.lastMessageAt ?? null, lastMessagePreview: c.lastMessagePreview, createdAt: c.createdAt, updatedAt: c.updatedAt };
+}
+
 export async function GET(request: Request) {
   const gate = await requireThink(request, 'conversation-list');
   if ('response' in gate) return gate.response;
   const ownerId = new mongoose.Types.ObjectId(gate.context.user.id);
   const archived = new URL(request.url).searchParams.get('archived') === '1';
   const conversations = await ThinkConversation.find({ ownerId, archived }).sort({ pinned: -1, lastMessageAt: -1, updatedAt: -1 }).limit(100).select('-ownerId').lean();
-  return jsonResponse({ conversations });
+  return jsonResponse({ conversations: conversations.map(publicConversation) });
 }
 
 export async function POST(request: Request) {
@@ -33,5 +49,5 @@ export async function POST(request: Request) {
     modelId: parsed.data.model ?? preference?.modelId ?? config.defaultModel,
     agent: (parsed.data.agent ?? preference?.agent ?? 'general') as 'general' | 'research' | 'coding' | 'study' | 'writing' | 'analysis',
   });
-  return jsonResponse({ conversation: { id: conversation._id.toString(), title: conversation.title, model: conversation.modelId, agent: conversation.agent, pinned: false, archived: false, lastMessagePreview: '', updatedAt: conversation.updatedAt } }, 201);
+  return jsonResponse({ conversation: publicConversation(conversation) }, 201);
 }

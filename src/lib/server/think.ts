@@ -17,7 +17,13 @@ export const THINK_AGENTS: Record<ThinkAgent, { name: string; description: strin
 export const DEFAULT_THINK_MODEL = 'gpt-4.1-mini';
 
 export function getThinkConfig() {
-  const configured = (process.env.THINK_OPENAI_MODELS ?? process.env.THINK_OPENAI_MODEL ?? DEFAULT_THINK_MODEL)
+  // Prefer THINK_OPENAI_MODELS; fall back through THINK_OPENAI_MODEL to the
+  // default. Treat empty / whitespace-only strings as absent so an unset
+  // variable in .env.local ("THINK_OPENAI_MODELS=") never silences the fallback.
+  const rawModels = process.env.THINK_OPENAI_MODELS?.trim()
+    || process.env.THINK_OPENAI_MODEL?.trim()
+    || DEFAULT_THINK_MODEL;
+  const configured = rawModels
     .split(',').map(model => model.trim()).filter(Boolean).slice(0, 12);
   const models = [...new Set(configured)];
   return {

@@ -1,4 +1,4 @@
-.social-page { max-width: 1440px; margin: 0 auto; padding: 38px clamp(18px, 4vw, 56px) 72px; }
+.social-page { max-width: 1440px; margin: 0 auto; padding: 36px clamp(24px, 4vw, 56px) 72px; }
 .social-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 12px 0 30px; border-bottom: 1px solid var(--line); }
 .social-hero h1 { margin: 8px 0 10px; font-size: clamp(34px, 4.8vw, 58px); letter-spacing: -.055em; font-weight: 540; }
 .social-hero h1 em { color: #779134; font-family: Georgia, serif; font-weight: 400; }
@@ -77,3 +77,31 @@
 @media (max-width: 900px) { .social-layout { grid-template-columns: minmax(0, 1fr) 275px; gap: 14px; } .social-page { padding-inline: 20px; } }
 @media (max-width: 720px) { .social-page { padding-top: 22px; } .social-hero { align-items: flex-start; flex-direction: column; } .social-profile-summary { width: 100%; } .social-layout { grid-template-columns: 1fr; } .social-aside { position: static; grid-row: 1; } .social-discover { order: 0; } .social-requests { order: 1; } .social-privacy { order: 2; } }
 @media (max-width: 480px) { .social-page { padding-inline: 13px; } .social-compose, .social-stories, .social-post { padding: 15px; } .social-compose-footer { flex-wrap: wrap; } .social-compose-footer label { width: 100%; } .social-feed-head { align-items: flex-start; flex-direction: column; } .social-tabs { width: 100%; } .social-tabs button { flex: 1; } .social-post-actions { flex-wrap: wrap; } .social-story-form { flex-wrap: wrap; } .social-story-form input { width: 100%; } }
+.social-page { padding-top: 36px; }
+.social-aside .social-card { padding: 15px; }
+.social-story-list article {
+  position: relative;
+  border: 1px solid transparent;
+  background: linear-gradient(var(--surface-raised), var(--surface-raised)) padding-box, linear-gradient(135deg, #f9ce34, #ee2a7b, #6228d7) border-box;
+}
+.social-story-list article > strong { display: block; min-height: 38px; padding-left: 46px; }
+.social-story-list article > strong::before {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 32px;
+  height: 32px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: linear-gradient(var(--surface-raised), var(--surface-raised)) padding-box, linear-gradient(135deg, #f9ce34, #ee2a7b, #6228d7) border-box;
+  content: '';
+}
+.social-post-actions button[aria-pressed='true'] { animation: social-heart-pop var(--dur-3) var(--ease-spring) both; }
+.social-post-actions button { min-width: 40px; min-height: 40px; }
+.social-empty { animation: nexora-card-enter var(--dur-3) var(--ease-out) both; }
+@media (max-width: 720px) {
+  .social-page { padding: 32px 16px 36px; }
+}
+@media (max-width: 480px) {
+  .social-page { padding-inline: 16px; }
+}

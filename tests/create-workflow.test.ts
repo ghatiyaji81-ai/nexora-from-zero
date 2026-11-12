@@ -124,7 +124,7 @@ test('CREATE projects, versions, exports, private assets and owner isolation per
     projectIds.push((await duplicate.json() as { project: { id: string } }).project.id);
 
     const archive = await request(`/api/create/projects/${created.project.id}`, owner.cookie, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'archived', favorite: true, revision: 1 }),
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'archived', favorite: true, revision: restoredProject.revision }),
     });
     assert.equal(archive.status, 200);
     assert.equal((await request('/api/create/projects?status=archived&favorite=1', owner.cookie)).status, 200);

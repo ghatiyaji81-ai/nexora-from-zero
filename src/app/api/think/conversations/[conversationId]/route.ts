@@ -9,6 +9,22 @@ export const runtime = 'nodejs';
 type Context = { params: Promise<{ conversationId: string }> };
 const updateSchema = z.object({ title: z.string().trim().min(1).max(100).optional(), model: z.string().trim().min(1).max(100).optional(), agent: z.string().optional(), pinned: z.boolean().optional(), archived: z.boolean().optional() }).strict();
 
+function publicConversation(c: {
+  _id: mongoose.Types.ObjectId;
+  title: string;
+  provider: string;
+  modelId: string;
+  agent: string;
+  pinned: boolean;
+  archived: boolean;
+  lastMessageAt?: Date;
+  lastMessagePreview: string;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return { id: c._id.toString(), title: c.title, provider: c.provider, model: c.modelId, agent: c.agent, pinned: c.pinned, archived: c.archived, lastMessageAt: c.lastMessageAt ?? null, lastMessagePreview: c.lastMessagePreview, createdAt: c.createdAt, updatedAt: c.updatedAt };
+}
+
 export async function GET(request: Request, route: Context) {
   const gate = await requireThink(request, 'conversation-read');
   if ('response' in gate) return gate.response;
@@ -17,7 +33,7 @@ export async function GET(request: Request, route: Context) {
   const ownerId = new mongoose.Types.ObjectId(gate.context.user.id);
   const conversation = await ThinkConversation.findOne({ _id: conversationId, ownerId }).select('-ownerId').lean();
   if (!conversation) return jsonResponse({ error: 'Conversation not found.' }, 404);
-  return jsonResponse({ conversation });
+  return jsonResponse({ conversation: publicConversation(conversation) });
 }
 
 export async function PATCH(request: Request, route: Context) {
@@ -33,7 +49,7 @@ export async function PATCH(request: Request, route: Context) {
   const set = { ...updates, ...(model ? { modelId: model } : {}) };
   const conversation = await ThinkConversation.findOneAndUpdate({ _id: conversationId, ownerId }, { $set: set }, { returnDocument: 'after', runValidators: true }).select('-ownerId').lean();
   if (!conversation) return jsonResponse({ error: 'Conversation not found.' }, 404);
-  return jsonResponse({ conversation });
+  return jsonResponse({ conversation: publicConversation(conversation) });
 }
 
 export async function DELETE(request: Request, route: Context) {

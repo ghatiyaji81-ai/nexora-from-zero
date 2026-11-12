@@ -52,7 +52,7 @@ export async function GET(request: Request) {
   else filter.status = 'draft';
   if (params.get('favorite') === '1') filter.favorite = true;
   if (query) filter.$text = { $search: query };
-  const projects = await CreateProject.find(filter).sort(query ? { score: { $meta: 'textScore' } } : { updatedAt: -1 }).limit(100).select('-ownerId -data -assetIds').lean();
+  const projects = await CreateProject.find(filter).sort(query ? { score: { $meta: 'textScore' } } : { updatedAt: -1 }).limit(100).select('-ownerId -data').lean();
   return jsonResponse({ projects: projects.map(publicProject) });
 }
 
