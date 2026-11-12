@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BUILD_TEMPLATES, type BuildTemplateId } from '@/lib/build';
 
 type Project = {
@@ -42,6 +42,8 @@ export function BuildDashboard() {
   const [creating, setCreating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [importing, setImporting] = useState(false);
+  const importRef = useRef<HTMLInputElement>(null);
 
   const loadProjects = useCallback(async (signal?: AbortSignal) => {
     const params = new URLSearchParams({ status: archived ? 'archived' : 'active' });
@@ -140,6 +142,43 @@ export function BuildDashboard() {
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'The project could not be exported.'); }
   }
 
+  async function exportZip(project: Project) {
+    try {
+      const response = await fetch(`/api/build/projects/${project.id}/zip`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(await responseError(response));
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${project.title.replace(/[^A-Za-z0-9._-]+/g, '-') || 'build-project'}.zip`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setError('');
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The ZIP export could not be created.'); }
+  }
+
+  async function importZip(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { setError('ZIP files must be 10 MB or smaller.'); return; }
+    const title = file.name.replace(/\.zip$/i, '').trim().slice(0, 120);
+    if (!title) { setError('Choose a ZIP file with a name to use as the project title.'); return; }
+    setImporting(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/build/projects/import?title=${encodeURIComponent(title)}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/zip' }, body: file,
+      });
+      if (!response.ok) throw new Error(await responseError(response));
+      const result = await response.json() as { project: { id: string } };
+      window.location.assign(`/build/${result.project.id}`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'The ZIP project could not be imported.');
+      setImporting(false);
+    }
+  }
+
   return (
     <main className="build-page">
       <header className="build-welcome">
@@ -164,6 +203,7 @@ export function BuildDashboard() {
           <button type="submit" disabled={creating}>{creating ? 'Creating…' : 'Create workspace'}</button>
         </form>
         <p className="build-template-note">{BUILD_TEMPLATES.find(item => item.id === template)?.description} Dependencies are not installed; use an external isolated environment to run this project.</p>
+        <div className="build-import-row"><div><strong>Bring an existing project</strong><small>Import text source from a ZIP, up to 10 MB. Files are stored but never executed.</small></div><input ref={importRef} className="build-file-input" type="file" accept=".zip,application/zip" onChange={event => void importZip(event)} /><button className="build-quiet-button" type="button" disabled={importing} onClick={() => importRef.current?.click()}>{importing ? 'Importing ZIP…' : 'Import ZIP'}</button></div>
       </section>
 
       <section className="build-project-section" aria-labelledby="build-project-title">
@@ -173,13 +213,13 @@ export function BuildDashboard() {
           <div className="build-project-grid">{projects.map(project => (
             <article className="build-project-card" key={project.id}>
               <Link href={`/build/${project.id}`} className="build-project-open"><span className="build-project-icon" aria-hidden="true">{project.template === 'python' ? 'Py' : project.template === 'html' ? '</>' : '{ }'}</span><span className="build-project-updated">Updated {dateLabel(project.updatedAt)}</span><h3>{project.title}</h3><p>{project.description || BUILD_TEMPLATES.find(item => item.id === project.template)?.name}</p><span className="build-project-meta">{project.fileCount} files <span>·</span> {project.status}</span></Link>
-              <div className="build-project-actions"><button type="button" onClick={() => void renameProject(project)}>Rename</button><button type="button" onClick={() => void duplicateProject(project)}>Duplicate</button><button type="button" onClick={() => void exportProject(project)}>Export</button><button type="button" onClick={() => void updateProject(project, { status: archived ? 'active' : 'archived' }).catch(reason => setError(reason.message))}>{archived ? 'Restore' : 'Archive'}</button><button type="button" onClick={() => void deleteProject(project)}>Delete</button></div>
+              <div className="build-project-actions"><button type="button" onClick={() => void renameProject(project)}>Rename</button><button type="button" onClick={() => void duplicateProject(project)}>Duplicate</button><button type="button" onClick={() => void exportProject(project)}>JSON</button><button type="button" onClick={() => void exportZip(project)}>ZIP</button><button type="button" onClick={() => void updateProject(project, { status: archived ? 'active' : 'archived' }).catch(reason => setError(reason.message))}>{archived ? 'Restore' : 'Archive'}</button><button type="button" onClick={() => void deleteProject(project)}>Delete</button></div>
             </article>
           ))}</div>
         )}
       </section>
 
-      <section className="build-limits-card"><div><p className="eyebrow">SAFETY BOUNDARY</p><h2>Editing works without execution.</h2><p>Terminal commands, tests, builds, live previews, Git operations, dependency installs, and deployments remain blocked until an isolated provider is configured. Imported archives are not accepted yet.</p></div><span>NO CODE RUNS HERE</span></section>
+      <section className="build-limits-card"><div><p className="eyebrow">SAFETY BOUNDARY</p><h2>Editing works without execution.</h2><p>ZIP projects are inspected and stored as source files only. Terminal commands, tests, builds, live previews, Git operations, dependency installs, and deployments remain unavailable until their isolated or authenticated providers are implemented.</p></div><span>NO CODE RUNS HERE</span></section>
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { test } from 'node:test';
 import mongoose from 'mongoose';
 import { connectToDatabase } from '../src/lib/server/db';
+import { readBuildZip, writeBuildZip } from '../src/lib/build-archive';
 import { BuildApproval } from '../src/models/build-approval';
 import { BuildProject } from '../src/models/build-project';
 import { BuildProjectFile } from '../src/models/build-project-file';
@@ -55,6 +56,27 @@ test('BUILD project files, snapshots, approved proposals, scanner and ownership 
     owners.push(owner.id, outsider.id);
 
     assert.equal((await request('/api/build/projects')).status, 401);
+    const zipBytes = writeBuildZip([
+      { path: 'src/imported.ts', content: 'export const imported = true;\n' },
+      { path: 'README.md', content: '# Imported safely\n' },
+    ]);
+    const importResponse = await request('/api/build/projects/import?title=Imported%20sample', owner.cookie, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/zip' },
+      body: new Uint8Array(zipBytes),
+    });
+    assert.equal(importResponse.status, 201);
+    const imported = await importResponse.json() as { project: { id: string }; importedFiles: number; executed: boolean };
+    assert.equal(imported.importedFiles, 2);
+    assert.equal(imported.executed, false);
+    assert.equal((await request(`/api/build/projects/${imported.project.id}`, outsider.cookie)).status, 404);
+    const zipResponse = await request(`/api/build/projects/${imported.project.id}/zip`, owner.cookie);
+    assert.equal(zipResponse.status, 200);
+    const roundTrip = readBuildZip(Buffer.from(await zipResponse.arrayBuffer()));
+    assert.deepEqual(roundTrip.map(file => file.path), ['README.md', 'src/imported.ts']);
+    assert.equal(roundTrip.find(file => file.path === 'src/imported.ts')?.content, 'export const imported = true;\n');
+    assert.equal((await request(`/api/build/projects/${imported.project.id}/zip`, outsider.cookie)).status, 404);
+
     const createdResponse = await post('/api/build/projects', { title: 'Private API', template: 'node' }, owner.cookie);
     assert.equal(createdResponse.status, 201);
     const created = await createdResponse.json() as { project: { id: string }; files: string[] };
@@ -106,10 +128,10 @@ test('BUILD project files, snapshots, approved proposals, scanner and ownership 
     assert.ok(scanResult.scan.findings.some(finding => finding.rule === 'dynamic-code-execution' && finding.status === 'needs_review'));
     assert.equal((await request(`/api/build/projects/${projectId}/scan`, outsider.cookie, { method: 'POST' })).status, 404);
 
-    const archive = await request(`/api/build/projects/${projectId}`, owner.cookie, {
+    const archiveResponse = await request(`/api/build/projects/${projectId}`, owner.cookie, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'archived' }),
     });
-    assert.equal(archive.status, 200);
+    assert.equal(archiveResponse.status, 200);
     const blockedWrite = await request(`/api/build/projects/${projectId}/files`, owner.cookie, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: 'later.js', content: '' }),
     });

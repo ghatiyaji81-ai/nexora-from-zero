@@ -22,6 +22,11 @@
 .build-create-form input, .build-create-form select, .build-ai-mode select, .build-ai-question textarea, .build-new-file input, .build-project-search input, .build-search input { min-width: 0; height: 38px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface-raised); color: var(--ink); font-size: 11px; }
 .build-create-form button:disabled, .build-ai-submit:disabled { opacity: .48; cursor: not-allowed; }
 .build-template-note { grid-column: 2; margin: -12px 0 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.build-import-row { display: flex; grid-column: 1 / -1; align-items: center; justify-content: space-between; gap: 16px; padding-top: 15px; border-top: 1px solid var(--line); }
+.build-import-row > div { display: grid; gap: 4px; }
+.build-import-row strong { color: var(--ink-soft); font-size: 11px; }
+.build-import-row small { color: var(--muted); font-size: 9px; }
+.build-file-input { display: none; }
 .build-project-section { margin-top: 37px; }
 .build-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .build-section-heading h2 { margin: 0; font-size: 25px; font-weight: 560; letter-spacing: -.04em; }
@@ -156,6 +161,7 @@
   .build-welcome { align-items: flex-start; flex-direction: column; }
   .build-status-grid, .build-project-grid { grid-template-columns: 1fr; }
   .build-create-form { grid-template-columns: 1fr; }
+  .build-import-row { flex-wrap: wrap; }
   .build-template-note { margin: 0; }
   .build-limits-card { grid-template-columns: 1fr; }
   .build-ide { padding: 12px 8px 18px; }

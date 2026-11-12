@@ -1,6 +1,6 @@
 # BUILD
 
-BUILD is the authenticated engineering workspace at `/build`. It is an incremental, local editing and review tool, not a hosted IDE replacement. Its file editor, private storage, project snapshots, export, search, and static checks work without an execution provider. It never runs project code or shell commands inside the NEXORA application process.
+BUILD is the authenticated engineering workspace at `/build`. It is an incremental, local editing and review tool, not a hosted IDE replacement. Its file editor, private storage, project snapshots, JSON/ZIP export, bounded text-only ZIP import, search, and static checks work without an execution provider. It never runs project code or shell commands inside the NEXORA application process.
 
 ## What works today
 
@@ -8,13 +8,14 @@ BUILD is the authenticated engineering workspace at `/build`. It is an increment
 - Browse up to 500 project files, open multiple tabs, edit plain text/code, use line numbers, search and replace in a file, search across bounded project contents, download a file, save manually (`Ctrl+S`), and autosave.
 - Create, rename, and delete relative-path files. Paths reject traversal, absolute paths, backslashes, controls, empty segments, and Windows device names. Each text file is limited to 256 KiB; the project file list is limited to 500 records.
 - Store file bodies in private GridFS bucket `build_project_files`. MongoDB stores metadata, ownership, revision pointers, approvals, and scan records. Up to 20 prior snapshots per path are retained. The History panel restores existing or deleted files.
-- Export a project as a private JSON backup (`.nexora-build.json`), capped at 500 files and 10 MiB. Export currently has no matching import implementation.
+- Export a project as a private JSON backup (`.nexora-build.json`) or ZIP archive, capped at 500 files and 10 MiB of source content.
+- Import ZIP archives up to 10 MiB containing at most 500 UTF-8 text files, each at most 256 KiB. Only stored/deflate entries are accepted; encrypted, multi-volume/ZIP64, duplicate paths, unsafe paths, symlinks, invalid checksums, binary data, and excessive expansion are rejected. Imported source is kept private and is never executed.
 - Ask the existing THINK coding agent to explain a file or selected code. When proposing edits, BUILD stores a pending proposal and displays before/after content. Only the authenticated project owner can explicitly approve or reject it. Approval checks the original file revision, applies the change, and retains the prior file version. A malformed AI response is shown without changing project files.
 - Run a deterministic heuristic scanner over saved code. Findings include evidence line numbers and `needs_review` status; a clean result is not a security certification.
 
 ## Not available (not simulated)
 
-- ZIP/archive import and external project import are not implemented. No imported code is unpacked or executed.
+- Git repository cloning, remote synchronization, and non-ZIP import formats are not implemented. ZIP import handles validated text sources only; no imported code is executed.
 - The code editor is a browser-native text editor with line numbers, not Monaco; language syntax highlighting, language-server diagnostics, formatting, and split-pane editing are unavailable.
 - Supervised agent roles/task queues, AI debugging workflows, and a full project activity timeline are not implemented.
 - No sandbox provider is configured. Terminal, build/test execution, package installation, live preview, and runtime debugging are blocked. The UI shows: “Execution environment unavailable — configure a sandbox provider.”
@@ -39,6 +40,8 @@ BUILD is the authenticated engineering workspace at `/build`. It is an increment
 - `GET/POST /api/build/projects`: list/search and create from a starter.
 - `GET/PATCH/DELETE /api/build/projects/[projectId]`: read, update metadata/archive, and delete an owned project.
 - `POST /api/build/projects/[projectId]/duplicate` and `GET /api/build/projects/[projectId]/export`: bounded copy and JSON backup export.
+- `POST /api/build/projects/import`: bounded, validated ZIP import into a new private project.
+- `GET /api/build/projects/[projectId]/zip`: bounded ZIP archive export for an owned project.
 - `GET/POST /api/build/projects/[projectId]/files`: list and create project files.
 - `GET/PATCH/DELETE /api/build/projects/[projectId]/files/[fileId]`: read, revision-checked save/rename, and delete with snapshot retention.
 - `GET /api/build/projects/[projectId]/search`: bounded saved-file search.
@@ -68,7 +71,7 @@ npm run test:integration
 npm run build
 ```
 
-`npm test` includes BUILD template/path/scanner unit tests. `npm run test:integration` includes authenticated project/file/snapshot/proposal/scan ownership workflows and requires a running app plus a MongoDB replica set. These checks do not claim a live AI provider, sandbox, Git host, or deployment provider is configured.
+`npm test` includes BUILD template/path/scanner and ZIP integrity/traversal unit tests. `npm run test:integration` includes authenticated project/file/snapshot/proposal/scan/ZIP ownership workflows and requires a running app plus a MongoDB replica set. These checks do not claim a live AI provider, sandbox, Git host, or deployment provider is configured.
 
 ## Extension points
 
