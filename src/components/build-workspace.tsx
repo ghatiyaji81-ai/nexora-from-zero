@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { BuildToolsPanel } from '@/components/build-tools-panel';
 
 type BuildFile = { id: string; path: string; size: number; revision: number; updatedAt?: string };
 type OpenBuildFile = BuildFile & { content: string };
@@ -151,6 +152,39 @@ export function BuildWorkspace({ projectId }: { projectId: string }) {
       setSaveState('Open failed');
     }
   }, [dirty, projectId, saveCurrent]);
+
+  const beforeWorkspaceSync = useCallback(async () => {
+    if (contentRef.current === fileRef.current?.content) return true;
+    await saveCurrent();
+    return contentRef.current === fileRef.current?.content;
+  }, [saveCurrent]);
+
+  const refreshAfterWorkspaceSync = useCallback(async () => {
+    const updatedFiles = await loadFileList();
+    setTabs(previous => previous.filter(tab => updatedFiles.some(file => file.id === tab.id)));
+    const active = fileRef.current;
+    if (!active) return;
+    const updated = updatedFiles.find(file => file.path === active.path);
+    if (!updated) {
+      fileRef.current = null;
+      contentRef.current = '';
+      setActiveId('');
+      setContent('');
+      setRevision(0);
+      setDirty(false);
+      return;
+    }
+    const response = await fetch(`/api/build/projects/${projectId}/files/${updated.id}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(await errorMessage(response));
+    const body = await response.json() as { file: OpenBuildFile };
+    fileRef.current = body.file;
+    contentRef.current = body.file.content;
+    revisionRef.current = body.file.revision;
+    setContent(body.file.content);
+    setRevision(body.file.revision);
+    setDirty(false);
+    setTabs(previous => previous.map(tab => tab.id === body.file.id ? body.file : tab));
+  }, [loadFileList, projectId]);
 
   useEffect(() => {
     let active = true;
@@ -531,8 +565,7 @@ export function BuildWorkspace({ projectId }: { projectId: string }) {
         <div className="build-bottom-content">
           {activePanel === 'security' ? <div className="build-scan-content"><div><strong>Heuristic static analysis</strong><p>{scanNotice || 'Scans saved source files locally on the application server. Results are suggestions, not verified vulnerabilities.'}</p></div><button type="button" onClick={() => void runScan()}>Run scan</button>{scanFindings && (scanFindings.length ? <ul>{scanFindings.map((finding, index) => <li key={`${finding.rule}-${finding.path}-${finding.line}-${index}`}><strong className={`severity-${finding.severity}`}>{finding.severity.toUpperCase()}</strong><span>{finding.title} · {finding.path}:{finding.line}</span><small>{finding.explanation}</small></li>)}</ul> : <p>No heuristic matches were found. This is not a security certification.</p>)}</div>
             : activePanel === 'history' ? <div className="build-history-content"><div><strong>Private file snapshots</strong><p>{historyNotice || 'Snapshots are created when files are edited or deleted.'}</p></div><button type="button" onClick={() => void loadHistory()}>Refresh</button>{historyVersions.length > 0 && <ul>{historyVersions.map(version => <li key={version.id}><span><strong>{version.path}</strong><small>Revision {version.revision} · {new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(version.createdAt))}</small></span><button type="button" onClick={() => void restoreVersion(version)}>Restore</button></li>)}</ul>}</div>
-            : activePanel === 'terminal' || activePanel === 'testing' ? <div className="build-unavailable"><strong>{activePanel === 'terminal' ? 'Execution environment unavailable — configure a sandbox provider.' : 'Tests have not run. Configure an isolated sandbox provider to execute project tests.'}</strong><p>No user code or shell commands are executed by this workspace.</p></div>
-              : activePanel === 'git' ? <div className="build-unavailable"><strong>Git operations are unavailable.</strong><p>No repository status, commits, branches, or remotes are simulated. Configure a safe Git provider to enable them.</p></div>
+            : activePanel === 'terminal' || activePanel === 'testing' || activePanel === 'git' ? <BuildToolsPanel projectId={projectId} mode={activePanel} disabled={isArchived} beforeSync={beforeWorkspaceSync} onSync={refreshAfterWorkspaceSync} />
                 : activePanel === 'activity' ? <div className="build-unavailable"><strong>Project files and approved AI changes are owner-scoped.</strong><p>File history is available through the versions endpoint; a full activity timeline is not yet implemented.</p></div>
                   : <div className="build-unavailable"><strong>Ready for local editing.</strong><p>Build, test, preview, and terminal output stay empty until a sandbox provider returns genuine results.</p></div>}
         </div>

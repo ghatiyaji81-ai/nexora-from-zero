@@ -1,6 +1,6 @@
 # BUILD
 
-BUILD is the authenticated engineering workspace at `/build`. It is an incremental, local editing and review tool, not a hosted IDE replacement. Its file editor, private storage, project snapshots, JSON/ZIP export, bounded text-only ZIP import, search, and static checks work without an execution provider. It never runs project code or shell commands inside the NEXORA application process.
+BUILD is the authenticated engineering workspace at `/build`. It is an incremental engineering workspace, not a hosted IDE replacement. Its file editor, private storage, project snapshots, JSON/ZIP export, bounded text-only ZIP import, search, and static checks work without an execution provider. Optional terminal and Git operations use a separate Docker container; user project code is never executed in the NEXORA application process.
 
 ## What works today
 
@@ -12,16 +12,21 @@ BUILD is the authenticated engineering workspace at `/build`. It is an increment
 - Import ZIP archives up to 10 MiB containing at most 500 UTF-8 text files, each at most 256 KiB. Only stored/deflate entries are accepted; encrypted, multi-volume/ZIP64, duplicate paths, unsafe paths, symlinks, invalid checksums, binary data, and excessive expansion are rejected. Imported source is kept private and is never executed.
 - Ask the existing THINK coding agent to explain a file or selected code. When proposing edits, BUILD stores a pending proposal and displays before/after content. Only the authenticated project owner can explicitly approve or reject it. Approval checks the original file revision, applies the change, and retains the prior file version. A malformed AI response is shown without changing project files.
 - Run a deterministic heuristic scanner over saved code. Findings include evidence line numbers and `needs_review` status; a clean result is not a security certification.
+- When an administrator enables a reachable Docker daemon and preloads the configured runtime image, start up to three project-scoped isolated sessions. Runtime is detected from project paths. Sessions are non-root, network-disabled, read-only except for bounded in-memory `/workspace` and `/tmp`, have CPU/memory/PID limits, and receive no NEXORA application environment or sensitive host mounts. Image pulls are never automatic.
+- Run a deliberately restricted set of explicitly approved offline commands: common npm scripts, offline npm install/ci, Python entry files and test discovery, Maven/Gradle offline tasks, `pip list`, and pip install from cached packages or requirements with `--no-index`. Arbitrary shell syntax, network commands, package downloads, and destructive terminal commands are not accepted. Output is bounded; command duration is limited to ten minutes (the UI default is two minutes). A timeout stops the container.
+- Synchronize sandbox source files back to private project storage after an explicit confirmation. Saved and deleted files retain BUILD file history. A revision check detects editor changes made after session start. Git metadata and generated directories are excluded; symlinks, binary files and oversized workspaces are rejected.
+- Use Git inside an active isolated session for initialization, status, diffs, stage/unstage, commit, history, branch create/switch/compare, and explicitly approved per-file restore. Git commands are fixed argument arrays, not shell input. Commit author identity is supplied per commit and is not stored as a credential.
+- View private command and Git execution logs by project owner.
 
 ## Not available (not simulated)
 
-- Git repository cloning, remote synchronization, and non-ZIP import formats are not implemented. ZIP import handles validated text sources only; no imported code is executed.
+- Git is session-local: stopping a session deletes its in-memory workspace and `.git` history after source synchronization. Commit/branch metadata is not restored into later sessions. Persistent repository bundles, GitHub account credentials, repository listing, and remote fetch/pull/push synchronization are not implemented.
 - The code editor is a browser-native text editor with line numbers, not Monaco; language syntax highlighting, language-server diagnostics, formatting, and split-pane editing are unavailable.
 - Supervised agent roles/task queues, AI debugging workflows, and a full project activity timeline are not implemented.
-- No sandbox provider is configured. Terminal, build/test execution, package installation, live preview, and runtime debugging are blocked. The UI shows: “Execution environment unavailable — configure a sandbox provider.”
-- Git/local repository commands, GitHub credentials and remotes, deployment, and rollback are unavailable. No success-shaped fake status is shown.
+- Docker sandbox execution is disabled by default and was not live-tested in this environment. Without a configured Docker daemon and preloaded image, session creation reports unavailable; BUILD editing, THINK proposals, history and ZIP functions remain available.
+- This milestone does not provide live preview, runtime debugging, Docker network access, package downloads, GitHub credentials/remotes, deployment, or deployment rollback. Project changes inside a session are not saved to MongoDB until the user synchronizes them; `.git` data is never synchronized.
 - Dependency/outdated-package and vulnerability checks are not available. The static scanner has a small heuristic ruleset, may miss issues or raise false positives, and does not upload source code to an external scanner.
-- PPTX-style or archive export, test discovery/history, debug logs, role permissions, and task cancellation are not available.
+- PPTX-style export, automated test discovery/history, debugger integration, and role-based permissions are not available.
 - Template files are initialized locally, but their dependencies are not installed. Runtime and build commands cannot be run in BUILD.
 
 ## Architecture and persistence
@@ -32,6 +37,7 @@ BUILD is the authenticated engineering workspace at `/build`. It is an increment
 - `BuildProjectFileVersion` stores owner/project/path/revision and a pointer to a retained GridFS body in `build_project_file_versions`.
 - `BuildApproval` records pending/applied/rejected/stale THINK edits in `build_approvals`; proposed text is private GridFS content, not copied into ordinary MongoDB documents.
 - `BuildSecurityScan` stores bounded heuristic findings in `build_security_scans`.
+- `BuildExecutionSession`, `BuildExecutionLog`, and `BuildGitRepository` store owner/project-scoped session state, bounded command/Git output, and per-session repository status. No container secrets or GitHub credentials are stored.
 - Declared compound indexes are registered in `scripts/create-indexes.ts`; run `npm run db:create-indexes` when deploying. Index creation and MongoDB workflows require the configured MongoDB replica set used by the rest of NEXORA.
 - GridFS project-file bodies are UTF-8 text. Content is served only through authenticated API routes after owner checks. Project export responses are private and non-cacheable.
 
@@ -49,6 +55,8 @@ BUILD is the authenticated engineering workspace at `/build`. It is an increment
 - `GET /api/build/projects/[projectId]/files/[fileId]/versions` and `POST .../versions/[versionId]`: list and restore a file's retained history.
 - `GET/POST /api/build/projects/[projectId]/approvals` and `PATCH .../approvals/[approvalId]`: owner-scoped proposal queue and explicit decisions.
 - `POST /api/build/projects/[projectId]/scan`: bounded static analysis.
+- `GET/POST /api/build/projects/[projectId]/execution`: list private session/log history; start, run one allowlisted approved offline command, synchronize source with explicit approval, or stop and remove an isolated session.
+- `POST /api/build/projects/[projectId]/git`: run a validated local Git operation in an active owned session.
 - `GET /api/build/providers`: truthful THINK and unavailable integration status.
 
 ## THINK, secrets, and approvals
@@ -57,11 +65,11 @@ BUILD does not implement its own model provider. A user action creates a normal 
 
 AI output is treated as untrusted. A code-change proposal must parse as one bounded JSON object targeting the currently selected path. Before/after content is shown in BUILD, and a separate explicit approval is required to apply it. The apply API checks the project owner and base revision. Agents do not run, approve, or grant their own permissions. Pending proposal expiry is not currently automated; users may reject it or delete the project.
 
-No secrets are available to project code because there is no code-execution provider. BUILD has no GitHub or deployment credential storage until those integrations are implemented.
+Docker containers receive no NEXORA application environment variables, host mounts, network, Docker socket, or provider credentials. The only writable paths are size-bounded tmpfs mounts; the workspace is not persisted by Docker after stop. The Docker daemon and preloaded images remain trusted infrastructure. Standard containers share the host kernel and are not a complete defense against a kernel or daemon escape; for hostile multi-tenant workloads, use a separately managed VM/microVM or remote sandbox service. GitHub and deployment credentials are not configured or stored.
 
 ## Setup and checks
 
-Copy the variable-name-only reference at [build.env.example](./build.env.example) into your environment and supply values through the existing NEXORA server setup; do not commit secrets. `OPENAI_API_KEY` is optional and is needed only for live THINK output. There are no active BUILD-specific sandbox, GitHub, or deployment variables because those adapters are not implemented.
+Copy the variable-name-only reference at [build.env.example](./build.env.example) into your environment and supply values through the existing NEXORA server setup; do not commit secrets. `OPENAI_API_KEY` is optional and is needed only for live THINK output. To enable execution, set `BUILD_DOCKER_ENABLED=true`, install Docker Engine/Desktop for the app's service account, configure `BUILD_DOCKER_COMMAND` if the executable is not on `PATH`, and preload the exact runtime image tags listed in the environment example. Images are never pulled automatically. Each runtime image can be changed through its corresponding `BUILD_DOCKER_*_IMAGE` setting; use reviewed images with the language toolchain and Git utilities required by your projects. BUILD does not grant project containers network access. The Docker account is highly privileged infrastructure; do not share its credentials with project code.
 
 ```sh
 npm run db:create-indexes
@@ -71,8 +79,8 @@ npm run test:integration
 npm run build
 ```
 
-`npm test` includes BUILD template/path/scanner and ZIP integrity/traversal unit tests. `npm run test:integration` includes authenticated project/file/snapshot/proposal/scan/ZIP ownership workflows and requires a running app plus a MongoDB replica set. These checks do not claim a live AI provider, sandbox, Git host, or deployment provider is configured.
+`npm test` includes BUILD command-policy, runtime detection, branch validation, template/path/scanner, and ZIP integrity/traversal unit tests. `npm run test:integration` includes authenticated project/file/snapshot/proposal/scan/ZIP ownership workflows and requires a running app plus a MongoDB replica set. Docker execution and live Git actions require a separately configured Docker daemon and preloaded images; they were not verified in the current environment.
 
 ## Extension points
 
-Future sandbox work must define a separate execution service with per-user isolation, no application environment variables or sensitive host mounts, explicit resource/network limits, cancellation, and an auditable approval flow. It must not be replaced with `child_process` or arbitrary execution in a Next.js route. GitHub and deployment adapters likewise need server-only credential storage and explicit user approval before remote writes.
+Follow-up work: persist Git history across isolated sessions; add an independently managed sandbox with stronger VM/microVM isolation and enforceable storage quotas; support carefully brokered network/package access; stream long-running job output and preview ports through separate origins; add GitHub through server-side credential storage and explicit approval for remote writes; and add Docker-backed integration tests in a host with Docker available.

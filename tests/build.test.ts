@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { BUILD_TEMPLATES, getBuildTemplateFiles, safeBuildPath, scanBuildFiles } from '../src/lib/build';
 import { BuildArchiveError, readBuildZip, writeBuildZip } from '../src/lib/build-archive';
-import { BuildExecutionUnavailableError, createUnavailableBuildExecutionProvider } from '../src/lib/server/build-execution-provider';
+import { BuildExecutionUnavailableError, clipBuildOutput, createUnavailableBuildExecutionProvider } from '../src/lib/server/build-execution-provider';
+import { BUILD_DOCKER_RESOURCE_POLICY, detectBuildRuntime, isValidBuildBranch, MAX_BUILD_COMMAND_TIMEOUT_MS, parseBuildCommand } from '../src/lib/build-execution-policy';
+import { BuildGitHubUnavailableError, createUnavailableBuildGitHubProvider } from '../src/lib/server/build-github-provider';
 
 test('BUILD starters initialize actual files and avoid exposing execution claims', () => {
   assert.equal(BUILD_TEMPLATES.length, 15);
@@ -35,7 +37,62 @@ test('BUILD scanner returns evidence-based heuristic findings with exact source 
 test('BUILD execution fails closed when no isolated provider is installed', async () => {
   const provider = createUnavailableBuildExecutionProvider();
   assert.equal(provider.isConfigured(), false);
-  await assert.rejects(provider.run('test', '0'.repeat(24), new AbortController().signal), BuildExecutionUnavailableError);
+  assert.equal(await provider.checkAvailability(), false);
+  await assert.rejects(provider.run('test', ['npm', 'test'], 1000, new AbortController().signal), BuildExecutionUnavailableError);
+  await assert.rejects(provider.exportWorkspace('test'), BuildExecutionUnavailableError);
+});
+
+test('BUILD command policy permits only bounded offline commands without shell expansion', () => {
+  assert.deepEqual(parseBuildCommand('npm run build'), {
+    args: ['npm', 'run', 'build'], requiresApproval: true, needsNetwork: false,
+  });
+  assert.deepEqual(parseBuildCommand('python -m pytest'), {
+    args: ['python3', '-m', 'pytest'], requiresApproval: true, needsNetwork: false,
+  });
+  assert.deepEqual(parseBuildCommand('npm install'), {
+    args: ['npm', 'install', '--offline', '--no-audit', '--no-fund'], requiresApproval: true, needsNetwork: false,
+  });
+  assert.deepEqual(parseBuildCommand('pip install --no-index sample==1.2'), {
+    args: ['python3', '-m', 'pip', 'install', '--no-index', 'sample==1.2'], requiresApproval: true, needsNetwork: false,
+  });
+  for (const command of [
+    'npm run build; curl attacker.test',
+    'python -c print(1)',
+    'curl https://example.test',
+    'rm -rf /workspace',
+    'pip install package',
+    'npm run unknown',
+    'python ../outside.py',
+  ]) assert.equal(parseBuildCommand(command), null, command);
+});
+
+test('BUILD runtime and Git branch detection reject unsafe values', () => {
+  assert.equal(detectBuildRuntime(['requirements.txt', 'main.py']), 'python');
+  assert.equal(detectBuildRuntime(['src/App.java']), 'java');
+  assert.equal(detectBuildRuntime(['src/main.c']), 'native');
+  assert.equal(detectBuildRuntime(['package.json']), 'node');
+  assert.equal(isValidBuildBranch('feature/editor-sync'), true);
+  for (const branch of ['--force', '../main', 'main..work', 'main.lock', 'branch/', '']) {
+    assert.equal(isValidBuildBranch(branch), false, branch);
+  }
+});
+
+test('BUILD Docker resource and output policies are bounded', () => {
+  assert.equal(BUILD_DOCKER_RESOURCE_POLICY.memory, '1g');
+  assert.equal(BUILD_DOCKER_RESOURCE_POLICY.cpus, '1');
+  assert.equal(BUILD_DOCKER_RESOURCE_POLICY.pids, 128);
+  assert.equal(BUILD_DOCKER_RESOURCE_POLICY.workspaceTmpfsMb, 512);
+  assert.equal(MAX_BUILD_COMMAND_TIMEOUT_MS, 600000);
+  const clipped = clipBuildOutput('x'.repeat(100_000));
+  assert.ok(Buffer.byteLength(clipped) <= 64 * 1024);
+  assert.ok(clipped.endsWith('[output truncated]'));
+});
+
+test('BUILD GitHub adapter fails explicitly until server-side credentials are configured', async () => {
+  const provider = createUnavailableBuildGitHubProvider();
+  assert.equal(provider.isConfigured(), false);
+  await assert.rejects(provider.listRepositories(), BuildGitHubUnavailableError);
+  await assert.rejects(provider.push('project', 'main', true), BuildGitHubUnavailableError);
 });
 
 test('BUILD ZIP export and import preserve multiple safe UTF-8 source files', () => {

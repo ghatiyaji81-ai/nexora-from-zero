@@ -182,7 +182,7 @@ export function BuildDashboard() {
   return (
     <main className="build-page">
       <header className="build-welcome">
-        <div><p className="eyebrow">BUILD / ENGINEERING WORKSPACE</p><h1>Your ideas,<br />under your control.</h1><p className="build-intro">Edit private project files, review AI-proposed changes, and inspect code without running untrusted programs on the NEXORA server.</p></div>
+        <div><p className="eyebrow">BUILD / ENGINEERING WORKSPACE</p><h1>Your ideas,<br />under your control.</h1><p className="build-intro">Edit private project files, review AI-proposed changes, and run restricted commands only inside an optional isolated Docker session.</p></div>
         <a className="build-primary-link" href="#new-project">Create project <span aria-hidden="true">＋</span></a>
       </header>
 
@@ -190,19 +190,19 @@ export function BuildDashboard() {
 
       <section className="build-status-grid" aria-label="Integration status">
         <article className="build-status-card"><span className={`build-status-dot${providers?.think.configured ? ' is-ready' : ''}`} /><div><strong>THINK coding</strong><small>{providers?.think.configured ? `Connected · ${providers.think.models.length} model(s)` : 'Provider not configured'}</small></div><Link href="/think">Open THINK</Link></article>
-        <article className="build-status-card"><span className="build-status-dot" /><div><strong>Code execution</strong><small>{providers?.sandbox.reason ?? 'Checking provider status…'}</small></div><span className="build-status-label">Unavailable</span></article>
+        <article className="build-status-card"><span className={`build-status-dot${providers?.sandbox.configured ? ' is-ready' : ''}`} /><div><strong>Isolated execution</strong><small>{providers?.sandbox.reason ?? 'Checking provider status…'}</small></div><span className="build-status-label">{providers?.sandbox.configured ? 'Available' : 'Unavailable'}</span></article>
         <article className="build-status-card"><span className="build-status-dot" /><div><strong>GitHub</strong><small>{providers?.github.reason ?? 'Checking provider status…'}</small></div><span className="build-status-label">Unavailable</span></article>
         <article className="build-status-card"><span className="build-status-dot" /><div><strong>Deployment</strong><small>{providers?.deployment.reason ?? 'Checking provider status…'}</small></div><span className="build-status-label">Unavailable</span></article>
       </section>
 
       <section className="build-create-card" id="new-project" aria-labelledby="build-create-title">
-        <div><p className="eyebrow">START SOMETHING</p><h2 id="build-create-title">New project</h2><p>Starter files are stored privately. BUILD does not install packages or run project code.</p></div>
+        <div><p className="eyebrow">START SOMETHING</p><h2 id="build-create-title">New project</h2><p>Starter files are stored privately. Execution requires an administrator-configured isolated provider.</p></div>
         <form className="build-create-form" onSubmit={event => void createProject(event)}>
           <label>Project name<input value={title} onChange={event => setTitle(event.target.value)} maxLength={120} required placeholder="e.g. Northstar API" /></label>
           <label>Starter template<select value={template} onChange={event => setTemplate(event.target.value as BuildTemplateId)}>{BUILD_TEMPLATES.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
           <button type="submit" disabled={creating}>{creating ? 'Creating…' : 'Create workspace'}</button>
         </form>
-        <p className="build-template-note">{BUILD_TEMPLATES.find(item => item.id === template)?.description} Dependencies are not installed; use an external isolated environment to run this project.</p>
+        <p className="build-template-note">{BUILD_TEMPLATES.find(item => item.id === template)?.description} Dependencies are not installed; isolated commands require preloaded provider images and run offline.</p>
         <div className="build-import-row"><div><strong>Bring an existing project</strong><small>Import text source from a ZIP, up to 10 MB. Files are stored but never executed.</small></div><input ref={importRef} className="build-file-input" type="file" accept=".zip,application/zip" onChange={event => void importZip(event)} /><button className="build-quiet-button" type="button" disabled={importing} onClick={() => importRef.current?.click()}>{importing ? 'Importing ZIP…' : 'Import ZIP'}</button></div>
       </section>
 
@@ -219,7 +219,7 @@ export function BuildDashboard() {
         )}
       </section>
 
-      <section className="build-limits-card"><div><p className="eyebrow">SAFETY BOUNDARY</p><h2>Editing works without execution.</h2><p>ZIP projects are inspected and stored as source files only. Terminal commands, tests, builds, live previews, Git operations, dependency installs, and deployments remain unavailable until their isolated or authenticated providers are implemented.</p></div><span>NO CODE RUNS HERE</span></section>
+      <section className="build-limits-card"><div><p className="eyebrow">SAFETY BOUNDARY</p><h2>Execution stays isolated and explicit.</h2><p>Docker sessions are disabled by default, network-isolated, resource-limited, and use allowlisted offline commands. Source changes require review before synchronization; GitHub remotes, live previews, and deployments are not configured.</p></div><span>NO HOST EXECUTION</span></section>
     </main>
   );
 }

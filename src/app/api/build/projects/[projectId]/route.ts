@@ -8,6 +8,9 @@ import { BuildProjectFile } from '@/models/build-project-file';
 import { BuildProjectFileVersion } from '@/models/build-project-file-version';
 import { BuildApproval } from '@/models/build-approval';
 import { BuildSecurityScan } from '@/models/build-security-scan';
+import { BuildExecutionLog } from '@/models/build-execution-log';
+import { BuildExecutionSession } from '@/models/build-execution-session';
+import { BuildGitRepository } from '@/models/build-git-repository';
 
 export const runtime = 'nodejs';
 type Context = { params: Promise<{ projectId: string }> };
@@ -36,8 +39,12 @@ export async function PATCH(request: Request, route: Context) {
   const { projectId } = await route.params;
   const parsed = updateSchema.safeParse(await parseJsonBody(request));
   if (!mongoose.isValidObjectId(projectId) || !parsed.success) return jsonResponse({ error: 'The project update is invalid.' }, 400);
+  const ownerId = new mongoose.Types.ObjectId(gate.context.user.id);
+  if (parsed.data.status === 'archived' && await BuildExecutionSession.exists({ ownerId, projectId, status: { $ne: 'stopped' } })) {
+    return jsonResponse({ error: 'Stop the isolated session and synchronize any changes before archiving this project.' }, 409);
+  }
   const project = await BuildProject.findOneAndUpdate(
-    { _id: projectId, ownerId: new mongoose.Types.ObjectId(gate.context.user.id) },
+    { _id: projectId, ownerId },
     { $set: parsed.data }, { new: true, runValidators: true },
   ).select('-ownerId').lean();
   if (!project) return jsonResponse({ error: 'Project not found.' }, 404);
@@ -52,10 +59,16 @@ export async function DELETE(request: Request, route: Context) {
   const ownerId = new mongoose.Types.ObjectId(gate.context.user.id);
   const project = await BuildProject.findOne({ _id: projectId, ownerId });
   if (!project) return jsonResponse({ error: 'Project not found.' }, 404);
+  if (await BuildExecutionSession.exists({ ownerId, projectId, status: { $ne: 'stopped' } })) {
+    return jsonResponse({ error: 'Stop the isolated session before deleting this project. Synchronize any wanted workspace changes first.' }, 409);
+  }
   const [files, versions, approvals] = await Promise.all([
     BuildProjectFile.find({ ownerId, projectId }).select('fileId').lean(),
     BuildProjectFileVersion.find({ ownerId, projectId }).select('fileId').lean(),
     BuildApproval.find({ ownerId, projectId }).select('proposalFileId').lean(),
+    BuildExecutionSession.deleteMany({ ownerId, projectId }),
+    BuildExecutionLog.deleteMany({ ownerId, projectId }),
+    BuildGitRepository.deleteMany({ ownerId, projectId }),
   ]);
   await Promise.all([
     BuildProjectFile.deleteMany({ ownerId, projectId }),

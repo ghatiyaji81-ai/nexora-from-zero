@@ -144,6 +144,44 @@
 .build-history-content li > span { display: grid; min-width: 0; gap: 4px; }
 .build-history-content li > span > strong { overflow: hidden; color: var(--ink-soft); text-overflow: ellipsis; white-space: nowrap; font: 8px ui-monospace, monospace; }
 .build-history-content li > span > small { color: var(--muted); font-size: 8px; }
+.build-tools-panel { display: grid; gap: 10px; padding: 12px; }
+.build-tools-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.build-tools-heading > div:first-child { min-width: 180px; }
+.build-tools-heading strong { color: var(--ink-soft); font-size: 9px; }
+.build-tools-heading p, .build-command-form small { margin: 4px 0 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.build-tool-session { display: flex; flex-wrap: wrap; align-items: end; gap: 6px; }
+.build-tool-session label, .build-command-form > label, .build-git-form-row label, .build-git-commit-form label { display: grid; gap: 4px; color: var(--muted); font-size: 8px; }
+.build-tool-session select, .build-command-form input, .build-git-form-row input, .build-git-commit-form input { min-width: 130px; height: 29px; padding: 0 7px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-raised); color: var(--ink); font-size: 9px; }
+.build-tool-session .build-quiet-button, .build-git-controls button, .build-command-form button, .build-test-actions button, .build-git-form-row button, .build-git-commit-form button, .build-execution-history button { min-height: 29px; padding: 0 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink-soft); cursor: pointer; font-size: 8px; }
+.build-sync-button { width: fit-content; min-height: 29px; padding: 0 9px; border: 1px solid var(--line-strong); border-radius: 7px; background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--ink-soft); cursor: pointer; font-size: 8px; }
+.build-tools-panel button:disabled { opacity: .48; cursor: not-allowed; }
+.build-tools-notice { margin: 0; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink-soft); font-size: 8px; }
+.build-command-form { display: grid; gap: 5px; }
+.build-command-form > div { display: flex; align-items: center; gap: 6px; }
+.build-command-form > div > span { color: var(--muted); font: 10px ui-monospace, monospace; }
+.build-command-form input { flex: 1; font-family: ui-monospace, monospace; }
+.build-test-actions, .build-git-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.build-git-controls { display: grid; gap: 8px; }
+.build-git-form-row { display: flex; flex-wrap: wrap; align-items: end; gap: 7px; }
+.build-git-form-row form, .build-git-commit-form { display: flex; flex-wrap: wrap; align-items: end; gap: 6px; }
+.build-git-restore-form { display: flex; flex-wrap: wrap; align-items: end; gap: 6px; }
+.build-git-restore-form label { display: grid; gap: 4px; color: var(--muted); font-size: 8px; }
+.build-git-restore-form span { color: var(--muted); font-size: 8px; }
+.build-git-restore-form input { min-width: 180px; height: 29px; padding: 0 7px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-raised); color: var(--ink); font-size: 9px; }
+.build-git-restore-form button { min-height: 29px; padding: 0 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink-soft); cursor: pointer; font-size: 8px; }
+.build-git-commit-form { padding-top: 8px; border-top: 1px solid var(--line); }
+.build-git-commit-form label:first-child { flex: 1; }
+.build-command-result { overflow: hidden; border: 1px solid var(--line); border-radius: 7px; }
+.build-command-result > div { display: flex; justify-content: space-between; gap: 10px; padding: 7px 9px; border-bottom: 1px solid var(--line); color: var(--ink-soft); font-size: 8px; }
+.build-command-result pre { max-height: 180px; overflow: auto; margin: 0; padding: 8px; color: var(--ink-soft); white-space: pre-wrap; overflow-wrap: anywhere; font: 8px/1.5 ui-monospace, monospace; }
+.build-command-result pre.is-stderr { border-top: 1px solid var(--line); color: #b94a36; }
+.build-execution-history { border-top: 1px solid var(--line); padding-top: 8px; color: var(--ink-soft); font-size: 8px; }
+.build-execution-history summary { cursor: pointer; }
+.build-execution-history ul { display: grid; gap: 5px; margin: 7px 0 0; padding: 0; list-style: none; }
+.build-execution-history li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px; border: 1px solid var(--line); border-radius: 6px; }
+.build-execution-history li > span { display: grid; min-width: 0; gap: 3px; }
+.build-execution-history code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8px; }
+.build-execution-history small { color: var(--muted); font-size: 7px; }
 .severity-high { color: #b94a36; }
 .severity-medium { color: #b27b32; }
 .severity-low { color: #668574; }
@@ -175,4 +213,7 @@
   .build-ai-panel { grid-column: auto; }
   .build-bottom-tabs { gap: 9px; overflow-x: auto; }
   .build-bottom-tabs button { flex: 0 0 auto; }
+  .build-tools-heading { flex-direction: column; }
+  .build-tool-session { align-items: stretch; }
+  .build-tool-session label { flex: 1 1 100%; }
 }
