@@ -105,6 +105,92 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="app-frame">
+      <style jsx global>{`
+        :root {
+          --content-max: 1200px;
+          --page-gutter: 24px;
+          --focus-ring: #789832;
+        }
+        body { font-size: 14px; line-height: 1.5; }
+        :where(.eyebrow, .card-kicker, .nav-group-label, .connect-eyebrow, .speak-eyebrow, .create-eyebrow, .discover-kicker) {
+          font-size: 11px;
+          letter-spacing: .06em;
+        }
+        :where(.welcome-copy, .auth-description, .connect-welcome > p, .discover-intro, .build-intro) {
+          font-size: max(12px, 1em);
+        }
+        :where(button, a, input, select, textarea, summary, [role='button'], [tabindex]):focus-visible {
+          outline: 2px solid var(--focus-ring);
+          outline-offset: 2px;
+        }
+        :where(button, a, [role='button']) {
+          transition: background-color var(--dur-2) ease, color var(--dur-2) ease,
+            border-color var(--dur-2) ease, opacity var(--dur-2) ease,
+            transform var(--dur-1) var(--ease-out);
+        }
+        :where(button:active:not(:disabled), a:active, [role='button']:active) {
+          transform: scale(.96);
+        }
+        :where(button:disabled, input:disabled, select:disabled, textarea:disabled) {
+          opacity: .5;
+          color: var(--ink-soft);
+        }
+        .main-column > :is(.dashboard, .social-page, .speak-workspace, .discover-page, .build-page, .create-dashboard, .create-assets-page) {
+          width: min(var(--content-max), 100%);
+          margin-inline: auto;
+          padding-inline: var(--page-gutter);
+        }
+        .main-column > :is(.dashboard, .social-page, .speak-workspace, .discover-page, .build-page, .create-dashboard, .create-assets-page) {
+          padding-top: 36px;
+        }
+        .nav-link { position: relative; isolation: isolate; }
+        .nav-link-active { background: transparent; }
+        .nav-link-active::before {
+          position: absolute;
+          z-index: -1;
+          inset: 2px 0;
+          border-radius: 10px;
+          background: #30342b;
+          content: '';
+          animation: nexora-pill-in var(--dur-2) var(--ease-out) both;
+        }
+        .nav-link-active .nav-link-indicator { display: none; }
+        .nav-link svg { transition: transform var(--dur-2) var(--ease-out), color var(--dur-2) ease; }
+        .nav-link:hover svg { transform: translateX(2px); }
+        .command-palette, .connect-modal, .create-modal, .create-history,
+        .think-doc-picker > div, .think-conversation-menu > div {
+          animation: nexora-pop-in var(--dur-2) var(--ease-out) both;
+        }
+        .palette-backdrop, .connect-modal-backdrop, .create-modal-backdrop {
+          animation: nexora-fade-in var(--dur-2) ease-out both;
+        }
+        .palette-empty, .connect-welcome, .connect-empty-chat, .connect-list-empty,
+        .think-side-empty, .create-empty, .build-empty-state, .discover-empty {
+          animation: nexora-fade-in var(--dur-3) var(--ease-out) both;
+        }
+        @keyframes nexora-pop-in {
+          from { opacity: 0; transform: scale(.98) translateY(4px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes nexora-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes nexora-pill-in {
+          from { opacity: .55; transform: scale(.98); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @media (max-width: 680px) {
+          :root { --page-gutter: 16px; }
+          .main-column > :is(.dashboard, .social-page, .speak-workspace, .discover-page, .build-page, .create-dashboard, .create-assets-page) {
+            padding-inline: var(--page-gutter);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .01ms !important;
+          }
+        }
+      `}</style>
       <aside className={`sidebar${mobileNavOpen ? ' sidebar-open' : ''}`} aria-label="Workspace navigation">
         <Link className="brand-lockup" href="/" aria-label="NEXORA home">
           <BrandMark />
@@ -184,7 +270,7 @@ export function AppShell({ children }: AppShellProps) {
           <button className="mobile-menu-button icon-button" type="button" onClick={() => setMobileNavOpen(value => !value)} aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileNavOpen}>
             <svg viewBox="0 0 24 24" aria-hidden="true">{mobileNavOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}</svg>
           </button>
-          <div className="breadcrumb"><span>Personal space</span><span className="breadcrumb-slash">/</span><strong>{pathname.startsWith('/connect') ? 'Connect' : pathname.startsWith('/think') ? 'Think' : pathname.startsWith('/speak') ? 'Speak' : pathname.startsWith('/create') ? 'Create' : pathname.startsWith('/build') ? 'Build' : pathname.startsWith('/discover') ? 'Discover' : pathname.startsWith('/social') ? 'Social' : 'Overview'}</strong></div>
+          <div className="breadcrumb"><span>Personal space</span><span className="breadcrumb-slash">/</span><strong>{pathname.startsWith('/connect') ? 'Connect' : pathname.startsWith('/think') ? 'Think' : pathname.startsWith('/speak') ? 'Speak' : pathname.startsWith('/create') ? 'Create' : pathname.startsWith('/build') ? 'Build' : pathname.startsWith('/discover') ? 'Discover' : pathname.startsWith('/social') ? 'Social' : pathname.startsWith('/login') ? 'Sign in' : pathname.startsWith('/signup') ? 'Create account' : pathname.startsWith('/workspace') ? 'Workspace' : 'Overview'}</strong></div>
           <div className="topbar-actions">
             <button className="search-trigger" type="button" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></svg>
