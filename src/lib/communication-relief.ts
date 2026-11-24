@@ -83,7 +83,7 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     sender: { name: 'Elena Rostova', role: 'Principal Designer' },
     source: 'connect',
     title: 'Sprint 4 Design Handoff',
-    snippet: 'Hey! The tokens for Warm and Dark contrast are ready in Figma.',
+    snippet: 'Hey! The tokens for Warm and Dark contrast are ready in NEXORA Create.',
     timestamp: Date.now() - 1000 * 60 * 30,
     timeDisplay: '30m ago',
     category: 'mention',

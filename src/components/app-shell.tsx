@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -10,7 +11,10 @@ import { ShortcutModal } from '@/components/shortcut-modal';
 import { DistractionShield } from '@/components/distraction-shield';
 import { ToastContainer } from '@/components/toast-container';
 import { ContextMenu } from '@/components/context-menu';
-import { OnboardingWizard } from '@/components/onboarding-wizard';
+const OnboardingWizard = dynamic(
+  () => import('@/components/onboarding-wizard').then((m) => m.OnboardingWizard),
+  { ssr: false }
+);
 import { SpaceSwitcher } from '@/components/space-switcher';
 import { MobileNav } from '@/components/mobile-nav';
 import { PullToRefresh } from '@/components/pull-to-refresh';

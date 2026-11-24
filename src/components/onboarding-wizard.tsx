@@ -31,8 +31,13 @@ export function OnboardingWizard() {
     const state = getOnboardingState();
     const hasDismissed = typeof window !== 'undefined' ? sessionStorage.getItem('nexora-onboarding-dismissed') : null;
 
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
     if (!state.completed && !hasDismissed) {
-      setIsOpen(true);
+      // Delay auto-appearance until after initial page paint and interaction settlement (3500ms)
+      timer = setTimeout(() => {
+        setIsOpen(true);
+      }, 3500);
     }
 
     const handleOpen = () => {
@@ -43,6 +48,7 @@ export function OnboardingWizard() {
     window.addEventListener('nexora-open-onboarding', handleOpen);
     return () => {
       window.removeEventListener('nexora-open-onboarding', handleOpen);
+      if (timer) clearTimeout(timer);
     };
   }, []);
 

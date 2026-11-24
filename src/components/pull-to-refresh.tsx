@@ -12,10 +12,23 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const touchStartY = useRef(0);
   const isPulling = useRef(false);
 
   const THRESHOLD = 65;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const start = () => setIsReady(true);
+    if ('requestIdleCallback' in window) {
+      const h = (window as unknown as { requestIdleCallback: (cb: () => void, opts: { timeout: number }) => number }).requestIdleCallback(start, { timeout: 2000 });
+      return () => (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(h);
+    } else {
+      const t = setTimeout(start, 600);
+      return () => clearTimeout(t);
+    }
+  }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const el = containerRef.current;
@@ -82,9 +95,9 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     <div
       ref={containerRef}
       className="pull-to-refresh-container"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={isReady ? handleTouchStart : undefined}
+      onTouchMove={isReady ? handleTouchMove : undefined}
+      onTouchEnd={isReady ? handleTouchEnd : undefined}
       style={{
         overscrollBehaviorY: 'contain',
         position: 'relative',

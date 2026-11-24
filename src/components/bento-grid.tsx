@@ -9,9 +9,20 @@ const BentoCustomizeDrawer = dynamic(
   { ssr: false }
 );
 
-import { CommunicationRelief } from '@/components/communication-relief';
-import { WellbeingCard } from '@/components/wellbeing-card';
-import { RulesEngineCard } from '@/components/rules-engine-card';
+const CommunicationRelief = dynamic(
+  () => import('@/components/communication-relief').then((m) => m.CommunicationRelief),
+  { ssr: false, loading: () => <div className="bento-card-skeleton" style={{ minHeight: '180px' }} /> }
+);
+
+const WellbeingCard = dynamic(
+  () => import('@/components/wellbeing-card').then((m) => m.WellbeingCard),
+  { ssr: false, loading: () => <div className="bento-card-skeleton" style={{ minHeight: '180px' }} /> }
+);
+
+const RulesEngineCard = dynamic(
+  () => import('@/components/rules-engine-card').then((m) => m.RulesEngineCard),
+  { ssr: false, loading: () => <div className="bento-card-skeleton" style={{ minHeight: '180px' }} /> }
+);
 import {
   DndContext,
   closestCenter,
@@ -51,9 +62,10 @@ interface SortableBentoCardProps {
   onToggleSpan: (id: BentoCardId) => void;
   onToggleVisibility: (id: BentoCardId) => void;
   isOverlay?: boolean;
+  isIdle?: boolean;
 }
 
-function BentoCardContent({ id }: { id: BentoCardId }) {
+function BentoCardContent({ id, isIdle = true }: { id: BentoCardId; isIdle?: boolean }) {
   switch (id) {
     case 'today-strip':
       return <TodayStrip />;
@@ -156,11 +168,11 @@ function BentoCardContent({ id }: { id: BentoCardId }) {
         </div>
       );
     case 'communication-relief':
-      return <CommunicationRelief />;
+      return isIdle ? <CommunicationRelief /> : <div className="bento-card-skeleton" style={{ minHeight: '180px' }} />;
     case 'wellbeing':
-      return <WellbeingCard />;
+      return isIdle ? <WellbeingCard /> : <div className="bento-card-skeleton" style={{ minHeight: '180px' }} />;
     case 'rules-engine':
-      return <RulesEngineCard />;
+      return isIdle ? <RulesEngineCard /> : <div className="bento-card-skeleton" style={{ minHeight: '180px' }} />;
     default:
       return null;
   }
@@ -171,6 +183,7 @@ function SortableBentoCard({
   onToggleSpan,
   onToggleVisibility,
   isOverlay = false,
+  isIdle = true,
 }: SortableBentoCardProps) {
   const meta = BENTO_CARDS_META[item.id] || {
     id: item.id,
@@ -323,7 +336,7 @@ function SortableBentoCard({
 
       {/* Card Main Body */}
       <div className="bento-card-body">
-        <BentoCardContent id={item.id} />
+        <BentoCardContent id={item.id} isIdle={isIdle} />
       </div>
     </div>
   );
@@ -332,6 +345,7 @@ function SortableBentoCard({
 export function BentoGrid() {
   const [layout, setLayout] = useState<BentoCardLayoutItem[]>(() => DEFAULT_BENTO_LAYOUT);
   const [isMounted, setIsMounted] = useState(false);
+  const [isIdle, setIsIdle] = useState(false);
   const [activeDragId, setActiveDragId] = useState<BentoCardId | null>(null);
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
   const dndContextId = useId();
@@ -339,6 +353,19 @@ export function BentoGrid() {
   useEffect(() => {
     setIsMounted(true);
     setLayout(loadBentoLayout());
+
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+    let idleHandle: number | null = null;
+
+    // Defer heavy widgets until after first paint
+    if (typeof window !== 'undefined') {
+      const markIdle = () => setIsIdle(true);
+      if ('requestIdleCallback' in window) {
+        idleHandle = (window as unknown as { requestIdleCallback: (cb: () => void, opts: { timeout: number }) => number }).requestIdleCallback(markIdle, { timeout: 1200 });
+      } else {
+        idleTimer = setTimeout(markIdle, 500);
+      }
+    }
 
     const handleExternalChange = (e: Event) => {
       const customEvent = e as CustomEvent<BentoCardLayoutItem[]>;
@@ -350,6 +377,12 @@ export function BentoGrid() {
     window.addEventListener('nexora-bento-layout-change', handleExternalChange);
     return () => {
       window.removeEventListener('nexora-bento-layout-change', handleExternalChange);
+      if (idleHandle !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleHandle);
+      }
+      if (idleTimer !== null) {
+        clearTimeout(idleTimer);
+      }
     };
   }, []);
 
@@ -493,10 +526,10 @@ export function BentoGrid() {
       )}
 
       {/* Grid Container */}
-      {!isMounted ? (
-        // Static SSR fallback to ensure no hydration mismatch
+      {!isMounted || !isIdle ? (
+        // Static layout during initial paint to eliminate DnD sensor attachment during TBT window
         <div className="bento-grid">
-          {DEFAULT_BENTO_LAYOUT.map((item) => (
+          {(isMounted ? visibleCards : DEFAULT_BENTO_LAYOUT).map((item) => (
             <div
               key={item.id}
               className={`bento-card bento-card-${item.id} ${
@@ -504,7 +537,7 @@ export function BentoGrid() {
               }`}
             >
               <div className="bento-card-body">
-                <BentoCardContent id={item.id} />
+                <BentoCardContent id={item.id} isIdle={isIdle} />
               </div>
             </div>
           ))}
@@ -526,6 +559,7 @@ export function BentoGrid() {
                 <SortableBentoCard
                   key={item.id}
                   item={item}
+                  isIdle={isIdle}
                   onToggleSpan={handleToggleSpan}
                   onToggleVisibility={handleToggleVisibility}
                 />

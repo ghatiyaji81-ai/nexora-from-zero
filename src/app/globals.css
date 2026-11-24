@@ -815,7 +815,11 @@ kbd { border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; backg
 .welcome-card-footer { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 19px; color: var(--muted); font-size: 12px; }
 .status-led { width: 5px; height: 5px; box-shadow: none; }
 
-.map-section { margin-top: 44px; }
+.map-section {
+  margin-top: 44px;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 450px;
+}
 .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 15px; margin-bottom: 15px; }
 .section-heading .eyebrow { margin-bottom: 8px; }
 .section-heading h2 { margin: 0; font-size: 19px; font-weight: 540; letter-spacing: -.035em; }
@@ -3784,48 +3788,6 @@ html[data-motion-mode='reduce'] *::after {
   animation-iteration-count: 1 !important;
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
-}
-
-/* OpenDyslexic Self-Hosted Fonts (SIL Open Font License 1.1) */
-@font-face {
-  font-family: 'OpenDyslexic';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/opendyslexic/opendyslexic-latin-400-normal.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'OpenDyslexic';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/opendyslexic/opendyslexic-latin-700-normal.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'OpenDyslexic';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/opendyslexic/opendyslexic-latin-400-italic.woff2') format('woff2');
-}
-
-/* Noto Sans Devanagari Self-Hosted Fonts (SIL Open Font License 1.1) */
-@font-face {
-  font-family: 'Noto Sans Devanagari';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/devanagari/noto-sans-devanagari-devanagari-400-normal.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Noto Sans Devanagari';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/devanagari/noto-sans-devanagari-devanagari-700-normal.woff2') format('woff2');
 }
 
 html[lang='hi'],

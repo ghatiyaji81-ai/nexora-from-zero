@@ -65,6 +65,22 @@ export function ThemeToggle() {
     if (savedFontMode && (savedFontMode === 'standard' || savedFontMode === 'dyslexic')) {
       setFontMode(savedFontMode);
       document.documentElement.dataset.fontMode = savedFontMode;
+      if (savedFontMode === 'dyslexic' && !document.getElementById('font-opendyslexic')) {
+        const link = document.createElement('link');
+        link.id = 'font-opendyslexic';
+        link.rel = 'stylesheet';
+        link.href = '/fonts/fonts-opendyslexic.css';
+        document.head.appendChild(link);
+      }
+    }
+
+    const savedLocale = (window.localStorage.getItem('nexora_locale') || window.localStorage.getItem('nexora-locale')) as SupportedLocale | null;
+    if (savedLocale === 'hi' && !document.getElementById('font-devanagari')) {
+      const link = document.createElement('link');
+      link.id = 'font-devanagari';
+      link.rel = 'stylesheet';
+      link.href = '/fonts/fonts-devanagari.css';
+      document.head.appendChild(link);
     }
 
     const savedMotionMode = window.localStorage.getItem('nexora-motion-mode') as MotionMode | null;
@@ -145,6 +161,20 @@ export function ThemeToggle() {
     setFontMode(nextMode);
     document.documentElement.dataset.fontMode = nextMode;
     window.localStorage.setItem('nexora-font-mode', nextMode);
+    if (typeof document !== 'undefined') {
+      const existing = document.getElementById('font-opendyslexic');
+      if (nextMode === 'dyslexic') {
+        if (!existing) {
+          const link = document.createElement('link');
+          link.id = 'font-opendyslexic';
+          link.rel = 'stylesheet';
+          link.href = '/fonts/fonts-opendyslexic.css';
+          document.head.appendChild(link);
+        }
+      } else if (existing) {
+        existing.remove();
+      }
+    }
   }
 
   function changeMotionMode(nextMotion: MotionMode) {
@@ -159,6 +189,18 @@ export function ThemeToggle() {
     if (typeof document !== 'undefined') {
       document.documentElement.lang = nextLocale;
       document.documentElement.dataset.locale = nextLocale;
+      const existing = document.getElementById('font-devanagari');
+      if (nextLocale === 'hi') {
+        if (!existing) {
+          const link = document.createElement('link');
+          link.id = 'font-devanagari';
+          link.rel = 'stylesheet';
+          link.href = '/fonts/fonts-devanagari.css';
+          document.head.appendChild(link);
+        }
+      } else if (existing) {
+        existing.remove();
+      }
     }
   }
 

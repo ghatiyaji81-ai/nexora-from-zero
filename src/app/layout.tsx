@@ -41,11 +41,25 @@ const appearanceInitScript = `
     const d = params.get('density') || localStorage.getItem('nexora-density');
     if (d) document.documentElement.dataset.density = d;
     const font = params.get('font') || localStorage.getItem('nexora-font-mode');
-    if (font) document.documentElement.dataset.fontMode = font;
+    if (font) {
+      document.documentElement.dataset.fontMode = font;
+      if (font === 'dyslexic') {
+        const link = document.createElement('link');
+        link.id = 'font-opendyslexic';
+        link.rel = 'stylesheet';
+        link.href = '/fonts/fonts-opendyslexic.css';
+        document.head.appendChild(link);
+      }
+    }
     const loc = params.get('locale') || localStorage.getItem('nexora_locale') || localStorage.getItem('nexora-locale') || 'en';
     if (loc === 'hi') {
       document.documentElement.lang = 'hi';
       document.documentElement.dataset.locale = 'hi';
+      const link = document.createElement('link');
+      link.id = 'font-devanagari';
+      link.rel = 'stylesheet';
+      link.href = '/fonts/fonts-devanagari.css';
+      document.head.appendChild(link);
     }
   } catch (e) {}
 `;

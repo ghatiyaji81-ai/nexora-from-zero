@@ -19,9 +19,22 @@ export function PwaController() {
   const [isOffline, setIsOffline] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const start = () => setIsReady(true);
+    if ('requestIdleCallback' in window) {
+      const handle = (window as unknown as { requestIdleCallback: (cb: () => void, opts: { timeout: number }) => number }).requestIdleCallback(start, { timeout: 2000 });
+      return () => (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(handle);
+    } else {
+      const timer = setTimeout(start, 800);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isReady || typeof window === 'undefined') return;
 
     // Check if dismissed before in this session
     const isDismissed = sessionStorage.getItem('nexora_pwa_dismissed') === 'true';
@@ -128,6 +141,8 @@ export function PwaController() {
     }
     setUpdateAvailable(false);
   };
+
+  if (!isReady) return null;
 
   return (
     <>

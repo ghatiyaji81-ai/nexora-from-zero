@@ -1,0 +1,16 @@
+/* Noto Sans Devanagari Self-Hosted Fonts (SIL Open Font License 1.1) */
+@font-face {
+  font-family: 'Noto Sans Devanagari';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/devanagari/noto-sans-devanagari-devanagari-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Noto Sans Devanagari';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/devanagari/noto-sans-devanagari-devanagari-700-normal.woff2') format('woff2');
+}
