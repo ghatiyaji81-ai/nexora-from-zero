@@ -9,20 +9,9 @@ const BentoCustomizeDrawer = dynamic(
   { ssr: false }
 );
 
-const CommunicationRelief = dynamic(
-  () => import('@/components/communication-relief').then((m) => m.CommunicationRelief),
-  { ssr: false }
-);
-
-const WellbeingCard = dynamic(
-  () => import('@/components/wellbeing-card').then((m) => m.WellbeingCard),
-  { ssr: false }
-);
-
-const RulesEngineCard = dynamic(
-  () => import('@/components/rules-engine-card').then((m) => m.RulesEngineCard),
-  { ssr: false }
-);
+import { CommunicationRelief } from '@/components/communication-relief';
+import { WellbeingCard } from '@/components/wellbeing-card';
+import { RulesEngineCard } from '@/components/rules-engine-card';
 import {
   DndContext,
   closestCenter,

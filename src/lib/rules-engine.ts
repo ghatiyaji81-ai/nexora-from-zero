@@ -26,7 +26,8 @@ export type ActionType =
   | 'start_focus'
   | 'stop_focus'
   | 'switch_space'
-  | 'open_space';
+  | 'open_space'
+  | 'pin_space';
 
 export interface Rule {
   id: string;
@@ -145,6 +146,37 @@ export const DEFAULT_RULES: Rule[] = [
     action: {
       type: 'open_space',
       params: { route: '/' },
+    },
+    createdAt: 1732000000000,
+    executionCount: 0,
+  },
+  {
+    id: 'rule-time-morning-focus',
+    name: 'Morning Focus Alignment (09:00)',
+    description: 'At 09:00 while Nexora is open, pin Work space and start 25m focus sprint.',
+    enabled: true,
+    trigger: {
+      type: 'time_of_day',
+      params: { time: '09:00' },
+    },
+    action: {
+      type: 'start_focus',
+      params: { durationMinutes: 25 },
+    },
+    createdAt: 1732000000000,
+    executionCount: 0,
+  },
+  {
+    id: 'rule-pin-think-space',
+    name: 'Auto-Pin Think on Deep Work',
+    description: 'When focus starts, ensure Think intelligence space is pinned for quick access.',
+    enabled: true,
+    trigger: {
+      type: 'focus_started',
+    },
+    action: {
+      type: 'pin_space',
+      params: { route: '/think' },
     },
     createdAt: 1732000000000,
     executionCount: 0,
@@ -330,10 +362,30 @@ function executeAction(
       break;
     }
     case 'open_space': {
-      const route = action.params?.route || '/';
+      const route = action.params?.route || (action.params?.spaceId ? `/${action.params.spaceId}` : '/');
       summary = `Navigated to space "${route}"`;
       if (!isDryRun && typeof window !== 'undefined' && window.location.pathname !== route) {
         window.location.href = route;
+      }
+      break;
+    }
+    case 'pin_space': {
+      const targetRoute = action.params?.route || (action.params?.spaceId ? `/${action.params.spaceId}` : '/connect');
+      summary = `Pinned space "${targetRoute}" to quick navigation`;
+      if (!isDryRun && typeof window !== 'undefined') {
+        try {
+          const raw = window.localStorage.getItem('nexora-pinned-spaces');
+          let pins: string[] = ['/connect', '/think', '/build'];
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) pins = parsed;
+          }
+          if (!pins.includes(targetRoute)) {
+            pins.push(targetRoute);
+            window.localStorage.setItem('nexora-pinned-spaces', JSON.stringify(pins));
+            window.dispatchEvent(new CustomEvent('nexora-pins-change', { detail: pins }));
+          }
+        } catch {}
       }
       break;
     }
@@ -396,6 +448,12 @@ export function evaluateRulesForTrigger(triggerType: TriggerType, context?: Reco
     // Check parameters if specified
     if (rule.trigger.params?.category && context?.category) {
       if (rule.trigger.params.category !== context.category) continue;
+    }
+    if (rule.trigger.params?.sender && context?.sender) {
+      if (rule.trigger.params.sender !== context.sender) continue;
+    }
+    if (rule.trigger.params?.time && context?.time) {
+      if (rule.trigger.params.time !== context.time) continue;
     }
 
     const res = executeAction(rule.action, rule, currentDepth, false);

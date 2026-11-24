@@ -75,7 +75,7 @@ function runCommand(commandLine) {
 async function main() {
   console.log('--- Starting Next.js Production Server on port', PORT, '---');
   const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(PORT)], {
-    stdio: 'ignore',
+    stdio: 'inherit',
     cwd: process.cwd(),
   });
 

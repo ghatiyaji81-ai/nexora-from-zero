@@ -203,11 +203,28 @@ export function PwaController() {
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
             <div>
-              <h3 style={{ fontSize: '0.9375rem', fontWeight: 600, margin: '0 0 0.25rem 0' }}>
-                Install NEXORA App
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                <h3 style={{ fontSize: '0.9375rem', fontWeight: 600, margin: 0 }}>
+                  Install NEXORA App
+                </h3>
+                <span
+                  style={{
+                    fontSize: '0.6875rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    padding: '0.15rem 0.45rem',
+                    borderRadius: '999px',
+                    backgroundColor: 'var(--surface-raised, #f0f0eb)',
+                    color: 'var(--ink, #20231f)',
+                    border: '1px solid var(--line, #e3e2d8)',
+                  }}
+                >
+                  Preview
+                </span>
+              </div>
               <p style={{ fontSize: '0.8125rem', color: 'var(--ink-soft, #4a5240)', margin: '0 0 0.75rem 0', lineHeight: 1.4 }}>
-                Add to your home screen or desktop for rapid distraction-free offline access.
+                Add to your home screen or desktop for rapid distraction-free offline access. (Real device unverified)
               </p>
             </div>
             <button

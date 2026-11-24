@@ -1,9 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import './create.css';
-import './build.css';
-import './discover.css';
-import './social/social.css';
 import { PwaController } from '@/components/pwa-controller';
 
 export const metadata: Metadata = {
@@ -46,7 +42,7 @@ const appearanceInitScript = `
     if (d) document.documentElement.dataset.density = d;
     const font = params.get('font') || localStorage.getItem('nexora-font-mode');
     if (font) document.documentElement.dataset.fontMode = font;
-    const loc = params.get('locale') || localStorage.getItem('nexora_locale') || 'en';
+    const loc = params.get('locale') || localStorage.getItem('nexora_locale') || localStorage.getItem('nexora-locale') || 'en';
     if (loc === 'hi') {
       document.documentElement.lang = 'hi';
       document.documentElement.dataset.locale = 'hi';

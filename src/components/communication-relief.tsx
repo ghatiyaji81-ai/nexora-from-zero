@@ -18,6 +18,7 @@ import {
 import { getFocusState } from '@/lib/focus-manager';
 import { showToast } from '@/lib/toast-manager';
 import { t } from '@/lib/i18n-strings';
+import { SwipableItem } from '@/components/swipable-item';
 
 export function CommunicationRelief() {
   const [notifications, setNotifications] = useState<NotificationItem[]>(() => getNotifications());
@@ -211,61 +212,69 @@ export function CommunicationRelief() {
           filteredNotifs.map((item) => {
             const isVip = isContactVip(item.sender.name);
             return (
-              <article key={item.id} className="comm-notif-item">
-                <div className="comm-notif-main">
-                  <div className="comm-notif-topline">
-                    <span className="comm-sender-name">{item.sender.name}</span>
-                    {isVip && (
-                      <span className="comm-vip-badge" title="VIP bypass active">
-                        VIP ⭐
-                      </span>
-                    )}
-                    <span className="comm-channel-tag">{item.source}</span>
-                    <span className="comm-time">{item.timeDisplay}</span>
+              <SwipableItem
+                key={item.id}
+                onSwipeArchive={() => handleDismiss(item.id)}
+                onSwipeSnooze={() => handleSnooze(item.id, 3)}
+                archiveLabel="Dismiss"
+                snoozeLabel="Snooze 3h"
+              >
+                <article className="comm-notif-item">
+                  <div className="comm-notif-main">
+                    <div className="comm-notif-topline">
+                      <span className="comm-sender-name">{item.sender.name}</span>
+                      {isVip && (
+                        <span className="comm-vip-badge" title="VIP bypass active">
+                          VIP ⭐
+                        </span>
+                      )}
+                      <span className="comm-channel-tag">{item.source}</span>
+                      <span className="comm-time">{item.timeDisplay}</span>
+                    </div>
+                    <h4 className="comm-item-title">{item.title}</h4>
+                    <p className="comm-item-snippet">{item.snippet}</p>
                   </div>
-                  <h4 className="comm-item-title">{item.title}</h4>
-                  <p className="comm-item-snippet">{item.snippet}</p>
-                </div>
 
-                <div className="comm-notif-actions">
-                  <button
-                    type="button"
-                    className="comm-action-btn"
-                    onClick={() => handleSnooze(item.id, 3)}
-                    title="Snooze for 3 hours"
-                    aria-label={`Snooze 3h: ${item.title}`}
-                  >
-                    Snooze 3h
-                  </button>
-                  <button
-                    type="button"
-                    className="comm-action-btn"
-                    onClick={() => handleReplyLater(item.id)}
-                    title="Move to Reply Later queue"
-                    aria-label={`Reply later: ${item.title}`}
-                  >
-                    Reply later
-                  </button>
-                  <button
-                    type="button"
-                    className={`comm-action-btn ${isVip ? 'is-vip' : ''}`}
-                    onClick={() => handleToggleVip(item.sender.name)}
-                    title={isVip ? 'Remove VIP priority' : 'Mark as VIP (bypasses focus shield)'}
-                    aria-label={`VIP: ${isVip ? 'remove priority for' : 'mark priority for'} ${item.sender.name}`}
-                  >
-                    <span aria-hidden="true">{isVip ? '★ ' : '☆ '}</span>VIP
-                  </button>
-                  <button
-                    type="button"
-                    className="comm-action-btn comm-dismiss-btn"
-                    onClick={() => handleDismiss(item.id)}
-                    aria-label={`Dismiss: ${item.title}`}
-                    title="Dismiss notification"
-                  >
-                    ×
-                  </button>
-                </div>
-              </article>
+                  <div className="comm-notif-actions">
+                    <button
+                      type="button"
+                      className="comm-action-btn"
+                      onClick={() => handleSnooze(item.id, 3)}
+                      title="Snooze for 3 hours"
+                      aria-label={`Snooze 3h: ${item.title}`}
+                    >
+                      Snooze 3h
+                    </button>
+                    <button
+                      type="button"
+                      className="comm-action-btn"
+                      onClick={() => handleReplyLater(item.id)}
+                      title="Move to Reply Later queue"
+                      aria-label={`Reply later: ${item.title}`}
+                    >
+                      Reply later
+                    </button>
+                    <button
+                      type="button"
+                      className={`comm-action-btn ${isVip ? 'is-vip' : ''}`}
+                      onClick={() => handleToggleVip(item.sender.name)}
+                      title={isVip ? 'Remove VIP priority' : 'Mark as VIP (bypasses focus shield)'}
+                      aria-label={`VIP: ${isVip ? 'remove priority for' : 'mark priority for'} ${item.sender.name}`}
+                    >
+                      <span aria-hidden="true">{isVip ? '★ ' : '☆ '}</span>VIP
+                    </button>
+                    <button
+                      type="button"
+                      className="comm-action-btn comm-dismiss-btn"
+                      onClick={() => handleDismiss(item.id)}
+                      aria-label={`Dismiss: ${item.title}`}
+                      title="Dismiss notification"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </article>
+              </SwipableItem>
             );
           })
         )}

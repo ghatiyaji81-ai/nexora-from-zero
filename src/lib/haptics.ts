@@ -1,6 +1,9 @@
 /**
  * NEXORA Haptics Utility
  * 
+ * Status: Preview · Real device unverified
+ * Tested in browser emulation; physical Android handset verification pending.
+ * 
  * Respects:
  * 1. User toggle (localStorage 'nexora-haptics')
  * 2. WCAG / OS reduced-motion preferences

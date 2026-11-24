@@ -55,6 +55,11 @@ export function PreviewLink({
     return window.matchMedia('(hover: none) or (pointer: coarse)').matches;
   };
 
+  const handleTouchStart = () => {
+    clearTimer();
+    setIsOpen(false);
+  };
+
   const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (isTouchDevice()) return;
     clearTimer();
@@ -142,6 +147,7 @@ export function PreviewLink({
         onFocus={handleFocus}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
+        onTouchStart={handleTouchStart}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         {...props}

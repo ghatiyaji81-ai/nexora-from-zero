@@ -257,10 +257,27 @@ export function MobileNav() {
               <div className="mobile-sheet-setting">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <label htmlFor="haptics-toggle" style={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                      Haptic Feedback
-                    </label>
-                    <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.75rem', color: 'var(--muted, #6b7264)', lineHeight: 1.35 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <label htmlFor="haptics-toggle" style={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                        Haptic Feedback
+                      </label>
+                      <span
+                        style={{
+                          fontSize: '0.6875rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          padding: '0.15rem 0.45rem',
+                          borderRadius: '999px',
+                          backgroundColor: 'var(--surface-raised, #f0f0eb)',
+                          color: 'var(--ink, #20231f)',
+                          border: '1px solid var(--line, #e3e2d8)',
+                        }}
+                      >
+                        Preview
+                      </span>
+                    </div>
+                    <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.75rem', color: 'var(--ink-soft)', lineHeight: 1.35 }}>
                       Gentle tactile vibration on taps and actions.
                     </p>
                   </div>
@@ -273,7 +290,7 @@ export function MobileNav() {
                     style={{ width: '1.25rem', height: '1.25rem', accentColor: 'var(--accent, #4f6b15)', cursor: 'pointer' }}
                   />
                 </div>
-                <div style={{ marginTop: '0.5rem', fontSize: '0.725rem', color: 'var(--muted, #6b7264)', lineHeight: 1.35 }}>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.725rem', color: 'var(--ink-soft)', lineHeight: 1.35 }}>
                   <strong>Notice:</strong> Supported on Android Chrome via <code>navigator.vibrate</code>. iOS Safari does not support web vibration. Automatically silenced when reduced motion is preferred.
                 </div>
               </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   clearDemoData,
   defaultTimelineProvider,
+  INITIAL_TIMELINE_ITEMS,
   isDemoDataActive,
   restoreDemoData,
   TimelineCategory,
@@ -13,9 +14,9 @@ import {
 import { showToast } from '@/lib/toast-manager';
 
 export function TodayStrip() {
-  const [items, setItems] = useState<TimelineItem[]>([]);
+  const [items, setItems] = useState<TimelineItem[]>(INITIAL_TIMELINE_ITEMS);
   const [activeFilter, setActiveFilter] = useState<TimelineCategory | 'all'>('all');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [, startTransition] = useTransition();
 
   const [hasDemoActive, setHasDemoActive] = useState(true);

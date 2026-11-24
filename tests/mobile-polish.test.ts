@@ -77,4 +77,30 @@ describe('Mobile Polish, Bottom Navigation & Touch Accessibility (WCAG 2.5.1 / 2
       'Must check reduced-motion preferences before vibrating'
     );
   });
+
+  it('verifies SwipableItem handles swipe gestures with edge-swipe protection and visible button alternatives', () => {
+    const swipePath = path.resolve(process.cwd(), 'src/components/swipable-item.tsx');
+    assert.ok(fs.existsSync(swipePath), 'src/components/swipable-item.tsx must exist');
+
+    const content = fs.readFileSync(swipePath, 'utf8');
+    assert.ok(content.includes('isEdge'), 'Must detect and ignore screen edge touch starts to avoid back-swipe clash');
+    assert.ok(content.includes('onSwipeArchive'), 'Must support archive swipe gesture');
+    assert.ok(content.includes('onSwipeSnooze'), 'Must support snooze swipe gesture');
+    assert.ok(content.includes('Math.abs(deltaY) > Math.abs(deltaX)'), 'Must ignore predominantly vertical scroll gestures');
+
+    const commPath = path.resolve(process.cwd(), 'src/components/communication-relief.tsx');
+    const commContent = fs.readFileSync(commPath, 'utf8');
+    assert.ok(commContent.includes('SwipableItem'), 'Communication Relief must wrap items in SwipableItem');
+    assert.ok(commContent.includes('comm-dismiss-btn'), 'Must retain visible dismiss button alternative');
+    assert.ok(commContent.includes('Snooze 3h'), 'Must retain visible snooze button alternative');
+  });
+
+  it('verifies PreviewLink disables hover preview popups on touch interactions', () => {
+    const previewPath = path.resolve(process.cwd(), 'src/components/preview-link.tsx');
+    assert.ok(fs.existsSync(previewPath), 'src/components/preview-link.tsx must exist');
+
+    const content = fs.readFileSync(previewPath, 'utf8');
+    assert.ok(content.includes('onTouchStart'), 'Must handle touchstart to disable preview popup on touch');
+    assert.ok(content.includes('isTouchDevice'), 'Must detect touch devices and suppress mouseenter previews');
+  });
 });

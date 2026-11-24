@@ -138,15 +138,16 @@ export function recordEnergyCheckin(level: EnergyLevel): EnergyCheckinEntry {
 
 export async function getDailyWrapup(): Promise<DailyWrapup> {
   const streak = getGentleStreakData();
+  const actualMinutes = typeof streak.totalMinutes === 'number' ? streak.totalMinutes : Math.round((streak.totalSeconds || 0) / 60);
 
   let gentleSummary = 'A quiet day of intentional presence. Whatever you accomplished today is enough.';
   if (streak.todayCount > 0) {
-    gentleSummary = `You completed ${streak.todayCount} focus sessions (${streak.todayCount * 25} minutes) of undistracted presence today. Great job protecting your calm.`;
+    gentleSummary = `You completed ${streak.todayCount} focus sessions (${actualMinutes} minutes of actual focused time) today. Great job protecting your calm.`;
   }
 
   return {
     dateStr: getTodayDateString(),
-    focusMinutes: streak.todayCount * 25,
+    focusMinutes: actualMinutes,
     completedTasks: streak.todayCount, // 100% real focus sessions completed today (excludes mock timeline tasks)
     gentleSummary,
   };
@@ -154,18 +155,18 @@ export async function getDailyWrapup(): Promise<DailyWrapup> {
 
 export function getWeeklyFocusReport(): WeeklyFocusReport {
   const streak = getGentleStreakData();
-  const totalMinutes = streak.weekCount * 25;
+  const weekMinutes = typeof streak.weekTotalMinutes === 'number' ? streak.weekTotalMinutes : Math.round((streak.weekTotalSeconds || 0) / 60);
 
   let gentleSummary = 'Every quiet minute gives your mind room to think. Showing up with patience.';
   if (streak.weekCount >= 4) {
-    gentleSummary = `Strong, sustainable consistency this week across ${streak.weekCount} sessions without burnout.`;
+    gentleSummary = `Strong, sustainable consistency this week across ${streak.weekCount} sessions (${weekMinutes}m focused) without burnout.`;
   } else if (streak.weekCount > 0) {
-    gentleSummary = `You protected ${totalMinutes} minutes of distraction-free space this week. Steady and gentle progress.`;
+    gentleSummary = `You protected ${weekMinutes} minutes of distraction-free space this week. Steady and gentle progress.`;
   }
 
   return {
     weekLabel: 'This Week',
-    totalFocusMinutes: totalMinutes,
+    totalFocusMinutes: weekMinutes,
     totalSessions: streak.weekCount,
     gentleSummary,
   };

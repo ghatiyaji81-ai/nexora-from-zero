@@ -61,3 +61,21 @@ test('i18n - Intl formatting functions respect locale', () => {
   const formattedDate = formatDate(date);
   assert.ok(formattedDate.length > 0);
 });
+
+test('i18n - verified native-review strings for navigation, shield, theme, and iOS share', () => {
+  setLocale('hi');
+  assert.equal(t('nav.social'), 'सोशल');
+  assert.equal(t('focus.shieldActive'), 'व्यवधान सुरक्षा सक्रिय');
+  assert.equal(t('theme.warm'), 'गर्म');
+  assert.equal(t('theme.reducedMotion'), 'एनिमेशन कम करें');
+  assert.equal(t('pwa.shareIosNotice'), 'आईओएस सफारी में यह सुविधा उपलब्ध नहीं है');
+
+  // Verify English fallback
+  setLocale('en');
+  assert.equal(t('nav.social'), 'Social');
+  assert.equal(t('focus.shieldActive'), 'Distraction Shield active');
+  assert.equal(t('theme.warm'), 'Warm');
+  assert.equal(t('theme.reducedMotion'), 'Reduce motion');
+  assert.equal(t('pwa.shareIosNotice'), 'Not available on iOS Safari');
+});
+

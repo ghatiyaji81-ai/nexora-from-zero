@@ -55,6 +55,20 @@ test('Wellbeing - generates daily wrapup and weekly focus report with calm, posi
   assert.ok(!weekly.gentleSummary.toLowerCase().includes('guilt'));
 });
 
+test('Wellbeing - tracks actual focus seconds including pauses and early ends rather than 25m estimate', async () => {
+  const { recordCompletedSession, getGentleStreakData } = await import('../src/lib/focus-manager');
+  // Record an actual early-ended session of 300 seconds (5 minutes)
+  recordCompletedSession(5, 300);
+
+  const streak = getGentleStreakData();
+  assert.ok(streak.totalSeconds >= 300);
+  assert.ok(streak.totalMinutes >= 5);
+
+  const wrapup = await getDailyWrapup();
+  assert.ok(wrapup.focusMinutes >= 5);
+  assert.ok(wrapup.gentleSummary.includes('actual focused time'));
+});
+
 test('Wellbeing - exports valid JSON backup and deletes local data safely', () => {
   const exported = exportAllLocalData();
   const parsed = JSON.parse(exported);

@@ -113,6 +113,17 @@ export const STRINGS_EN = {
   'pwa.offlineDesc': 'You are currently offline. Your local documents and focus tools continue to work.',
   'pwa.languageSwitcher': 'Language (English / हिन्दी)',
   'pwa.dyslexicDevanagariNotice': 'OpenDyslexic contains Latin glyphs only. In Hindi mode, a legible Devanagari fallback is used.',
+  'pwa.shareIosNotice': 'Not available on iOS Safari',
+
+  // Navigation & Shell
+  'nav.social': 'Social',
+
+  // Focus & Distraction Shield
+  'focus.shieldActive': 'Distraction Shield active',
+
+  // Theme & Accessibility
+  'theme.warm': 'Warm',
+  'theme.reducedMotion': 'Reduce motion',
 
   // Mobile Polish & Share (Item 12)
   'mobile.more': 'More',
@@ -234,6 +245,17 @@ export const STRINGS_HI: Record<I18nKey, string> = {
   'pwa.offlineDesc': 'आप वर्तमान में ऑफ़लाइन हैं। आपके स्थानीय दस्तावेज़ और फोकस उपकरण काम करते रहेंगे।',
   'pwa.languageSwitcher': 'भाषा (English / हिन्दी)',
   'pwa.dyslexicDevanagariNotice': 'ओपनडिस्लेक्सिक में केवल लैटिन वर्ण हैं। हिंदी मोड में एक सुपाठ्य देवनागरी फ़ॉन्ट का उपयोग किया जाता है।',
+  'pwa.shareIosNotice': 'आईओएस सफारी में यह सुविधा उपलब्ध नहीं है', // [needs native review]
+
+  // Navigation & Shell [needs native review]
+  'nav.social': 'सोशल',
+
+  // Focus & Distraction Shield [needs native review]
+  'focus.shieldActive': 'व्यवधान सुरक्षा सक्रिय',
+
+  // Theme & Accessibility [needs native review]
+  'theme.warm': 'गर्म',
+  'theme.reducedMotion': 'एनिमेशन कम करें',
 
   // Mobile Polish & Share (Item 12) [needs native review]
   'mobile.more': 'अधिक',

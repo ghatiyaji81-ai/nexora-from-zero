@@ -16,7 +16,7 @@ export default async function WorkspacePage() {
   return (
     <main className="account-page">
       <header className="account-header">
-        <a className="auth-brand" href="/" aria-label="NEXORA home"><span aria-hidden="true">N</span>NEXORA</a>
+        <a className="auth-brand" href="/"><span aria-hidden="true">N</span>NEXORA</a>
         <LogoutButton />
       </header>
       <section className="account-card" aria-labelledby="account-title">

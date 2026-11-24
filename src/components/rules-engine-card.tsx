@@ -103,7 +103,6 @@ export function RulesEngineCard() {
             type="button"
             className="rules-action-btn rules-log-btn"
             onClick={() => setShowLogsModal(true)}
-            aria-label="View automation activity log"
           >
             📋 Log ({logs.length})
           </button>
@@ -111,7 +110,6 @@ export function RulesEngineCard() {
             type="button"
             className="rules-action-btn rules-create-btn"
             onClick={() => setShowCreateModal(true)}
-            aria-label={`+ ${t('rules.createRule')}`}
           >
             + {t('rules.createRule')}
           </button>
@@ -188,7 +186,6 @@ export function RulesEngineCard() {
                   className="rule-btn rule-dryrun-btn"
                   onClick={() => handleDryRun(rule.id)}
                   title="Simulate rule execution without altering state"
-                  aria-label={`Test rule dry run: ${rule.name}`}
                 >
                   Test
                 </button>

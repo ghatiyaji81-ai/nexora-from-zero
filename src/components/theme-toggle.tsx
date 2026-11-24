@@ -286,11 +286,11 @@ export function ThemeToggle() {
                 style={{
                   marginTop: '0.5rem',
                   fontSize: '0.75rem',
-                  color: 'var(--muted, #6b7264)',
+                  color: 'var(--ink-soft)',
                   lineHeight: 1.4,
                   padding: '0.4rem 0.6rem',
                   borderRadius: '0.375rem',
-                  background: 'rgba(107, 114, 100, 0.08)',
+                  background: 'color-mix(in srgb, var(--ink-soft) 8%, transparent)',
                 }}
               >
                 <strong>Font Note:</strong> OpenDyslexic contains Latin glyphs only. In Hindi mode, a legible Devanagari font (Noto Sans Devanagari) is explicitly used.

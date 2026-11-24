@@ -19,13 +19,24 @@ export interface FocusSessionState {
   notificationsMuted: boolean;
   startedAt: number | null;
   isBreakMode?: boolean;
+  focusedSecondsInSession?: number;
 }
 
 export interface GentleStreakData {
   todayCount: number;
   weekCount: number;
   totalMinutes: number;
+  totalSeconds: number;
+  weekTotalSeconds: number;
+  weekTotalMinutes: number;
   message: string;
+}
+
+export interface FocusRecord {
+  timestamp: number;
+  date: string;
+  minutes: number;
+  seconds: number;
 }
 
 const STORAGE_KEY = 'nexora-focus-session-state';
@@ -46,6 +57,7 @@ const DEFAULT_STATE: FocusSessionState = {
   notificationsMuted: false,
   startedAt: null,
   isBreakMode: false,
+  focusedSecondsInSession: 0,
 };
 
 let memoryState: FocusSessionState = { ...DEFAULT_STATE };
@@ -84,85 +96,84 @@ function notifyStateChange() {
   );
 }
 
-function recordCompletedSession(minutes: number) {
-  if (typeof window === 'undefined') return;
-  try {
-    const raw = window.localStorage.getItem(STREAKS_KEY);
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const now = Date.now();
-    const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
+let inMemoryRecords: FocusRecord[] = [];
 
-    let records: { timestamp: number; date: string; minutes: number }[] = [];
-    if (raw) {
-      records = JSON.parse(raw);
-      if (!Array.isArray(records)) records = [];
-    }
+export function recordCompletedSession(minutes: number, seconds?: number) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const now = Date.now();
+  const actualSeconds = typeof seconds === 'number' && seconds > 0 ? seconds : minutes * 60;
+  const newRecord: FocusRecord = {
+    timestamp: now,
+    date: todayStr,
+    minutes: Math.round(actualSeconds / 60),
+    seconds: actualSeconds,
+  };
 
-    records.push({ timestamp: now, date: todayStr, minutes });
-    // Filter to last 30 days
-    records = records.filter(r => r.timestamp >= now - 30 * 24 * 60 * 60 * 1000);
-    window.localStorage.setItem(STREAKS_KEY, JSON.stringify(records));
-  } catch {}
+  inMemoryRecords.push(newRecord);
+  inMemoryRecords = inMemoryRecords.filter(r => r.timestamp >= now - 30 * 24 * 60 * 60 * 1000);
+
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const raw = window.localStorage.getItem(STREAKS_KEY);
+      let records: FocusRecord[] = [];
+      if (raw) {
+        records = JSON.parse(raw);
+        if (!Array.isArray(records)) records = [];
+      }
+      records.push(newRecord);
+      records = records.filter(r => r.timestamp >= now - 30 * 24 * 60 * 60 * 1000);
+      window.localStorage.setItem(STREAKS_KEY, JSON.stringify(records));
+    } catch {}
+  }
 }
 
 export function getGentleStreakData(): GentleStreakData {
-  if (typeof window === 'undefined') {
-    return {
-      todayCount: 0,
-      weekCount: 0,
-      totalMinutes: 0,
-      message: 'Every quiet session counts. Ready when you are.',
-    };
+  let records: FocusRecord[] = [...inMemoryRecords];
+
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const raw = window.localStorage.getItem(STREAKS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as FocusRecord[];
+        if (Array.isArray(parsed)) {
+          records = parsed;
+        }
+      }
+    } catch {}
   }
 
-  try {
-    const raw = window.localStorage.getItem(STREAKS_KEY);
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const now = Date.now();
-    const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const now = Date.now();
+  const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
 
-    if (!raw) {
-      return {
-        todayCount: 0,
-        weekCount: 0,
-        totalMinutes: 0,
-        message: 'Every quiet session counts. Ready when you are.',
-      };
-    }
+  const todayRecords = records.filter(r => r.date === todayStr);
+  const weekRecords = records.filter(r => r.timestamp >= oneWeekAgo);
 
-    const records = JSON.parse(raw) as { timestamp: number; date: string; minutes: number }[];
-    if (!Array.isArray(records)) throw new Error('Invalid streak format');
+  const todayCount = todayRecords.length;
+  const weekCount = weekRecords.length;
+  const totalSeconds = todayRecords.reduce((acc, r) => acc + (typeof r.seconds === 'number' ? r.seconds : (r.minutes || 25) * 60), 0);
+  const totalMinutes = Math.round(totalSeconds / 60);
+  const weekTotalSeconds = weekRecords.reduce((acc, r) => acc + (typeof r.seconds === 'number' ? r.seconds : (r.minutes || 25) * 60), 0);
+  const weekTotalMinutes = Math.round(weekTotalSeconds / 60);
 
-    const todayRecords = records.filter(r => r.date === todayStr);
-    const weekRecords = records.filter(r => r.timestamp >= oneWeekAgo);
-
-    const todayCount = todayRecords.length;
-    const weekCount = weekRecords.length;
-    const totalMinutes = todayRecords.reduce((acc, r) => acc + (r.minutes || 25), 0);
-
-    let message = 'Ready when you are. Showing up with quiet intention.';
-    if (todayCount === 1) {
-      message = '1 focused session completed today. A calm start.';
-    } else if (todayCount > 1) {
-      message = `${todayCount} quiet sessions today (${totalMinutes}m in flow). Consistent and calm.`;
-    } else if (weekCount > 0) {
-      message = `${weekCount} sessions this week. Gentle progress, never rushed.`;
-    }
-
-    return {
-      todayCount,
-      weekCount,
-      totalMinutes,
-      message,
-    };
-  } catch {
-    return {
-      todayCount: 0,
-      weekCount: 0,
-      totalMinutes: 0,
-      message: 'Showing up with calm intention. Never guilt-based.',
-    };
+  let message = 'Ready when you are. Showing up with quiet intention.';
+  if (todayCount === 1) {
+    message = `1 focused session completed today (${totalMinutes}m of actual focus). A calm start.`;
+  } else if (todayCount > 1) {
+    message = `${todayCount} quiet sessions today (${totalMinutes}m of actual focus). Consistent and calm.`;
+  } else if (weekCount > 0) {
+    message = `${weekCount} sessions this week (${weekTotalMinutes}m focused). Gentle progress, never rushed.`;
   }
+
+  return {
+    todayCount,
+    weekCount,
+    totalMinutes,
+    totalSeconds,
+    weekTotalSeconds,
+    weekTotalMinutes,
+    message,
+  };
 }
 
 function startTimerTick() {
@@ -173,9 +184,9 @@ function startTimerTick() {
 
     if (memoryState.remainingSeconds <= 1) {
       // Completed session or break
-      const completedMinutes = Math.round(memoryState.totalDurationSeconds / 60);
       if (!memoryState.isBreakMode) {
-        recordCompletedSession(completedMinutes);
+        const actualSeconds = (memoryState.focusedSecondsInSession || 0) + 1;
+        recordCompletedSession(Math.round(actualSeconds / 60), actualSeconds);
       }
 
       // If it was a break mode, restore normal shield mode cleanly
@@ -189,6 +200,7 @@ function startTimerTick() {
         isBreakMode: false,
         distractionShieldEnabled: true, // returns to normal shield mode after break ends
         notificationsMuted: false,
+        focusedSecondsInSession: 0,
       };
 
       if (timerInterval) clearInterval(timerInterval);
@@ -201,9 +213,15 @@ function startTimerTick() {
       return;
     }
 
+    // Increment focused seconds when in active focus mode (not break mode)
+    const nextFocusedSeconds = !memoryState.isBreakMode
+      ? (memoryState.focusedSecondsInSession || 0) + 1
+      : (memoryState.focusedSecondsInSession || 0);
+
     memoryState = {
       ...memoryState,
       remainingSeconds: memoryState.remainingSeconds - 1,
+      focusedSecondsInSession: nextFocusedSeconds,
     };
     notifyStateChange();
   }, 1000);
@@ -309,6 +327,7 @@ export function startFocusSession(
     notificationsMuted: true,
     startedAt: Date.now(),
     isBreakMode: false,
+    focusedSecondsInSession: 0,
   };
 
   isInitialized = true;
@@ -368,6 +387,14 @@ export function stopFocusSession(): FocusSessionState {
     timerInterval = null;
   }
 
+  // Record actual focused time even on early stop
+  if (!memoryState.isBreakMode && memoryState.focusedSecondsInSession && memoryState.focusedSecondsInSession > 0) {
+    recordCompletedSession(
+      Math.round(memoryState.focusedSecondsInSession / 60),
+      memoryState.focusedSecondsInSession
+    );
+  }
+
   // Gracefully stop any active ambient sounds
   stopAmbientSound();
 
@@ -378,6 +405,7 @@ export function stopFocusSession(): FocusSessionState {
     isActive: false,
     isPaused: false,
     notificationsMuted: false,
+    focusedSecondsInSession: 0,
   };
 
   notifyStateChange();

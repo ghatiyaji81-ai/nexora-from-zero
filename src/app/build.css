@@ -95,6 +95,10 @@
 .build-replace-toolbar button { min-height: 28px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink-soft); cursor: pointer; font-size: 12px; }
 .build-replace-toolbar button:disabled { opacity: .45; cursor: not-allowed; }
 .build-code-editor { display: grid; min-height: 320px; flex: 1; grid-template-columns: 42px minmax(0, 1fr); overflow: auto; padding: 12px 0; background: var(--surface-raised); }
+.build-editor-skeleton { display: flex; min-height: 320px; flex: 1; padding: 24px; background: var(--surface-raised); }
+.build-editor-skeleton-lines { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.build-editor-skeleton-lines .skeleton-line { height: 14px; border-radius: 4px; background: color-mix(in srgb, var(--ink) 8%, transparent); width: 80%; animation: pulse 1.5s ease-in-out infinite; }
+.build-editor-skeleton-lines .skeleton-line.short { width: 45%; }
 .build-line-numbers { min-width: 0; margin: 0; padding: 0 9px 0 0; color: var(--muted); text-align: right; user-select: none; font: 13px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
 .build-code-editor textarea { width: 100%; min-width: 0; min-height: 100%; resize: none; padding: 0 12px; border: 0; outline: 0; background: transparent; color: var(--ink); tab-size: 2; white-space: pre; overflow-wrap: normal; font: 13px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
 .build-code-editor textarea:focus-visible { outline: 2px solid #789832; outline-offset: -2px; }

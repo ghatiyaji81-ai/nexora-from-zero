@@ -2,11 +2,41 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { BuildToolsPanel } from '@/components/build-tools-panel';
-import { BuildPreviewPanel } from '@/components/build-preview-panel';
-import { BuildTestPanel } from '@/components/build-test-panel';
-import { BuildDependencyPanel } from '@/components/build-dependency-panel';
+
+const BuildEditor = dynamic(
+  () => import('@/components/build-editor').then((m) => m.BuildEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="build-editor-skeleton" role="status" aria-label="Loading code editor">
+        <div className="build-editor-skeleton-lines" aria-hidden="true">
+          <div className="skeleton-line" />
+          <div className="skeleton-line short" />
+          <div className="skeleton-line" />
+        </div>
+      </div>
+    ),
+  }
+);
+
+const BuildToolsPanel = dynamic(
+  () => import('@/components/build-tools-panel').then((m) => m.BuildToolsPanel),
+  { ssr: false }
+);
+const BuildPreviewPanel = dynamic(
+  () => import('@/components/build-preview-panel').then((m) => m.BuildPreviewPanel),
+  { ssr: false }
+);
+const BuildTestPanel = dynamic(
+  () => import('@/components/build-test-panel').then((m) => m.BuildTestPanel),
+  { ssr: false }
+);
+const BuildDependencyPanel = dynamic(
+  () => import('@/components/build-dependency-panel').then((m) => m.BuildDependencyPanel),
+  { ssr: false }
+);
 
 type BuildFile = { id: string; path: string; size: number; revision: number; updatedAt?: string };
 type OpenBuildFile = BuildFile & { content: string };
@@ -589,7 +619,20 @@ export function BuildWorkspace({ projectId }: { projectId: string }) {
         <section className="build-editor-panel" aria-label="Code editor">
           <div className="build-tabs" role="tablist" aria-label="Open files">{tabs.map(tab => <button type="button" role="tab" aria-selected={tab.id === activeId} className={tab.id === activeId ? 'is-active' : ''} key={tab.id} onClick={() => { const file = files.find(item => item.id === tab.id); if (file) void openFile(file); }}>{tab.path.split('/').pop()}{dirty && tab.id === activeId ? ' •' : ''}</button>)}</div>
           <form className="build-replace-toolbar" onSubmit={event => { event.preventDefault(); replaceMatches(); }}><input ref={findRef} value={findText} onChange={event => setFindText(event.target.value)} placeholder="Find in file (Ctrl+F)" aria-label="Find in current file" /><input value={replaceText} onChange={event => setReplaceText(event.target.value)} placeholder="Replace with" aria-label="Replace with" /><button type="submit" disabled={!findText}>Replace all</button></form>
-          {activeFile ? <div className="build-code-editor"><pre className="build-line-numbers" aria-hidden="true">{Array.from({ length: Math.max(1, content.split('\n').length) }, (_, index) => index + 1).join('\n')}</pre><textarea ref={textareaRef} aria-label={`Code editor: ${activeFile.path}`} spellCheck={false} autoCapitalize="off" autoCorrect="off" readOnly={isArchived} value={content} onChange={event => changeContent(event.target.value)} /></div> : <div className="build-editor-empty"><span aria-hidden="true">{ }</span><p>Select a file or create one to start editing.</p></div>}
+          {activeFile ? (
+            <BuildEditor
+              path={activeFile.path}
+              content={content}
+              isArchived={isArchived}
+              onChange={changeContent}
+              textareaRef={textareaRef}
+            />
+          ) : (
+            <div className="build-editor-empty">
+              <span aria-hidden="true">{ }</span>
+              <p>Select a file or create one to start editing.</p>
+            </div>
+          )}
           <div className="build-editor-footer"><span>{activeFile?.path ?? 'No file selected'}</span><span>{new TextEncoder().encode(content).byteLength.toLocaleString()} bytes · revision {revision}</span></div>
         </section>
 

@@ -108,3 +108,58 @@ test('Rules Engine - one-click calm workflows execute strictly in-app', () => {
 
   stopFocusSession();
 });
+
+test('Rules Engine - auto-routes incoming notifications and processes time-of-day trigger', () => {
+  clearActivityLogs();
+  saveRules(DEFAULT_RULES);
+
+  // 1. Auto-route newsletters to digest
+  const newsletterRun = evaluateRulesForTrigger('notification_arrived', { category: 'newsletter' });
+  assert.ok(newsletterRun >= 1);
+  const newsletterLogs = getActivityLogs();
+  assert.ok(newsletterLogs.some((l) => l.summary.includes('Routed notification to daily digest')));
+
+  // 2. VIP mention auto-routes to unmuted priority
+  const vipRun = evaluateRulesForTrigger('notification_arrived', { category: 'mention' });
+  assert.ok(vipRun >= 1);
+  const vipLogs = getActivityLogs();
+  assert.ok(vipLogs.some((l) => l.summary.includes('Unmuted notifications for priority delivery')));
+
+  // 3. Time of day trigger (only while app is open)
+  const timeRun = evaluateRulesForTrigger('time_of_day', { time: '09:00' });
+  assert.ok(timeRun >= 1);
+  const timeLogs = getActivityLogs();
+  assert.ok(timeLogs.some((l) => l.summary.includes('Started 25m focus session')));
+
+  stopFocusSession();
+});
+
+test('Rules Engine - executes pin_space and open_space actions safely', () => {
+  clearActivityLogs();
+
+  // Test pin_space
+  const pinRule = addRule({
+    name: 'Test Pin Think',
+    description: 'Pins think space',
+    enabled: true,
+    trigger: { type: 'focus_started' },
+    action: { type: 'pin_space', params: { route: '/think' } },
+  });
+
+  const pinTest = testRuleDryRun(pinRule.id);
+  assert.equal(pinTest.success, true);
+  assert.ok(pinTest.message.includes('Pinned space "/think"'));
+
+  // Test open_space
+  const openRule = addRule({
+    name: 'Test Open Connect',
+    description: 'Opens connect space',
+    enabled: true,
+    trigger: { type: 'focus_ended' },
+    action: { type: 'open_space', params: { route: '/connect' } },
+  });
+
+  const openTest = testRuleDryRun(openRule.id);
+  assert.equal(openTest.success, true);
+  assert.ok(openTest.message.includes('Navigated to space "/connect"'));
+});

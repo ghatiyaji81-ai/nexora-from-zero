@@ -751,7 +751,7 @@ export function AppShell({ children }: AppShellProps) {
               </button>
             )}
 
-            <button className="search-trigger" type="button" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog" aria-label="Search actions (⌘K)">
+            <button className="search-trigger" type="button" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog" aria-label="Search actions">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="10.8" cy="10.8" r="6.8" />
                 <path d="m16 16 5 5" />

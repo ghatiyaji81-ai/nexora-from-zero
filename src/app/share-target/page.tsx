@@ -157,7 +157,7 @@ function ShareTargetContent() {
 
   if (authStatus === 'loading') {
     return (
-      <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: 'var(--muted, #6b7264)' }}>
+      <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: 'var(--ink-soft)' }}>
         <p>Verifying secure session…</p>
       </div>
     );
@@ -185,7 +185,7 @@ function ShareTargetContent() {
         <h1 style={{ fontSize: '1.35rem', fontWeight: 600, marginBottom: '0.75rem' }}>
           Authentication Required
         </h1>
-        <p style={{ color: 'var(--muted, #6b7264)', fontSize: '0.925rem', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+        <p style={{ color: 'var(--ink-soft)', fontSize: '0.925rem', lineHeight: 1.5, marginBottom: '1.5rem' }}>
           To securely receive and save shared content into your NEXORA workspace, please sign in to your account.
         </p>
 
@@ -197,7 +197,7 @@ function ShareTargetContent() {
             fontSize: '0.8125rem',
             textAlign: 'left',
             marginBottom: '1.75rem',
-            color: 'var(--muted, #6b7264)',
+            color: 'var(--ink-soft)',
           }}
         >
           <strong>Platform Notice:</strong> Web Share Target is supported on Android Chrome. iOS Safari does not support the Web Share Target API.
@@ -246,13 +246,14 @@ function ShareTargetContent() {
             letterSpacing: '0.05em',
             padding: '0.25rem 0.6rem',
             borderRadius: '999px',
-            backgroundColor: 'rgba(79, 107, 21, 0.12)',
-            color: 'var(--accent, #4f6b15)',
+            backgroundColor: 'var(--surface-raised, #f0f0eb)',
+            color: 'var(--ink, #20231f)',
+            border: '1px solid var(--line, #e3e2d8)',
           }}
         >
-          Android Chrome Only · Web Share Target
+          Preview · Real device unverified (Android Chrome Only)
         </span>
-        <span style={{ fontSize: '0.8125rem', color: 'var(--muted, #6b7264)' }}>
+        <span style={{ fontSize: '0.8125rem', color: 'var(--ink-soft)' }}>
           Signed in as <strong>{userFullName}</strong>
         </span>
       </div>
@@ -260,7 +261,7 @@ function ShareTargetContent() {
       <h1 style={{ fontSize: '1.4rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>
         Incoming Shared Content
       </h1>
-      <p style={{ fontSize: '0.875rem', color: 'var(--muted, #6b7264)', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
+      <p style={{ fontSize: '0.875rem', color: 'var(--ink-soft)', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
         Review and edit the shared text before choosing where to store it. NEXORA never auto-posts shared content.
       </p>
 
@@ -412,7 +413,7 @@ function ShareTargetContent() {
             style={{
               flex: '0 0 auto',
               backgroundColor: 'transparent',
-              color: 'var(--muted, #6b7264)',
+              color: 'var(--ink-soft)',
               border: 'none',
               padding: '0.75rem 1rem',
               fontSize: '0.875rem',
@@ -432,7 +433,7 @@ export default function ShareTargetPage() {
     <AppShell>
       <Suspense
         fallback={
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted, #6b7264)' }}>
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--ink-soft)' }}>
             Loading incoming shared content…
           </div>
         }
