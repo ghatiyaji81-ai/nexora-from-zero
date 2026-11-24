@@ -55,6 +55,7 @@ async function main() {
       { name: 'Overview', path: '/?locale=hi&textSize=xlarge' },
       { name: 'Connect', path: '/connect?locale=hi&textSize=xlarge' },
       { name: 'Build', path: '/build?locale=hi&textSize=xlarge' },
+      { name: 'Privacy Dashboard', path: '/privacy?locale=hi&textSize=xlarge' },
     ];
 
     const results = [];

@@ -294,6 +294,18 @@ export function AppShell({ children }: AppShellProps) {
         actionHref: '/social',
         description: 'Privacy-aware activity feed, expiring stories, and follow controls.',
       },
+      {
+        href: '/privacy',
+        label: 'Privacy',
+        icon: (
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        ),
+        arrow: true,
+        previewVariant: 'overview',
+        actionLabel: 'Open Privacy',
+        actionHref: '/privacy',
+        description: 'Transparent control over stored data, permissions, export, and local retention.',
+      },
     ],
     [router]
   );

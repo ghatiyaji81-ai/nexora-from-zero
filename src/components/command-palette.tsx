@@ -313,6 +313,16 @@ const ALL_COMMANDS: Omit<CommandItem, 'statusText'>[] = [
     previewVariant: 'overview',
   },
   {
+    id: 'set-privacy-dashboard',
+    label: 'Open Privacy & Data Dashboard',
+    detail: 'Inspect stored data, active sessions, permissions, and JSON export',
+    category: 'Settings',
+    href: '/privacy',
+    keywords: ['privacy', 'data', 'export', 'delete', 'permissions', 'sessions', 'security', 'gdpr'],
+    icon: '🛡',
+    previewVariant: 'overview',
+  },
+  {
     id: 'act-shortcuts',
     label: 'Open Keyboard Shortcuts',
     detail: 'View and customize all navigation, focus, and appearance shortcuts',

@@ -136,6 +136,21 @@ export const STRINGS_EN = {
   'share.saveThink': 'Save as Note in Think',
   'share.saveConnect': 'Save as Draft in Connect',
   'share.iosNotice': 'Note: Android Chrome supports Web Share Target; iOS Safari does not support this standard.',
+
+  // Privacy & Data Dashboard (Item 8)
+  'privacy.title': 'Privacy & Data Dashboard',
+  'privacy.subtitle': 'Transparent control over your personal workspace data and privacy settings',
+  'privacy.overview': 'Privacy Overview',
+  'privacy.categories': 'Data Categories & Permissions',
+  'privacy.apps': 'Connected Applications',
+  'privacy.export': 'Data Export',
+  'privacy.deletion': 'Data Deletion & Retention',
+  'privacy.activity': 'Privacy Activity Log',
+  'privacy.education': 'Privacy & Encryption Transparency',
+  'privacy.exportBtn': 'Download Workspace Data (JSON)',
+  'privacy.previewBtn': 'Preview Export Data',
+  'privacy.deleteConfirm': 'Are you sure you want to delete this data category?',
+  'privacy.deletePermanent': 'This action is permanent and clears local browser data immediately.',
 } as const;
 
 export type I18nKey = keyof typeof STRINGS_EN;
@@ -268,6 +283,21 @@ export const STRINGS_HI: Record<I18nKey, string> = {
   'share.saveThink': 'थिंक में नोट के रूप में सहेजें',
   'share.saveConnect': 'कनेक्ट में ड्राफ्ट के रूप में सहेजें',
   'share.iosNotice': 'ध्यान दें: एंड्रॉइड क्रोम वेब शेयर टारगेट का समर्थन करता है; आईओएस सफारी इसका समर्थन नहीं करता।',
+
+  // Privacy & Data Dashboard (Item 8) [needs native review]
+  'privacy.title': 'गोपनीयता और डेटा डैशबोर्ड',
+  'privacy.subtitle': 'आपके व्यक्तिगत कार्यक्षेत्र डेटा और गोपनीयता सेटिंग्स पर पारदर्शी नियंत्रण',
+  'privacy.overview': 'गोपनीयता अवलोकन',
+  'privacy.categories': 'डेटा श्रेणियां और अनुमतियां',
+  'privacy.apps': 'कनेक्ट किए गए ऐप्स',
+  'privacy.export': 'डेटा निर्यात',
+  'privacy.deletion': 'डेटा हटाना और प्रतिधारण',
+  'privacy.activity': 'गोपनीयता गतिविधि लॉग',
+  'privacy.education': 'गोपनीयता और एन्क्रिप्शन पारदर्शिता',
+  'privacy.exportBtn': 'कार्यक्षेत्र डेटा डाउनलोड करें (JSON)',
+  'privacy.previewBtn': 'निर्यात डेटा पूर्वावलोकन',
+  'privacy.deleteConfirm': 'क्या आप वाकई इस डेटा श्रेणी को हटाना चाहते हैं?',
+  'privacy.deletePermanent': 'यह क्रिया स्थायी है और तुरंत स्थानीय ब्राउज़र डेटा को हटा देती है।',
 };
 
 const STORAGE_KEY_LOCALE = 'nexora-locale';
