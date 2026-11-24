@@ -194,8 +194,41 @@ export function SocialWorkspace({ displayName }: { displayName: string }) {
 
           <section className="social-stories social-card" aria-labelledby="stories-title">
             <div className="social-section-head"><div><p className="eyebrow">THE NEXT 24 HOURS</p><h2 id="stories-title">Stories</h2></div><span className="social-subtle">{stories.length} live</span></div>
-            <form className="social-story-form" onSubmit={createStory}><input aria-label="Write a story" maxLength={500} value={storyBody} onChange={event => setStoryBody(event.target.value)} placeholder="Add a short text story…" /><button type="submit" disabled={busy || !storyBody.trim()}>Add story</button></form>
-            {stories.length ? <div className="social-story-list">{stories.map(story => <article key={story.id}><strong>{story.author.displayName}</strong><p>{story.body}</p><small>Expires {new Date(story.expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</small></article>)}</div> : <p className="social-empty-inline">No active stories yet. Share a small moment with your followers.</p>}
+            <div className="social-story-row">
+              <details className="social-add-story-popover">
+                <summary className="social-story-circle add-story" title="Add a story">
+                  <span className="social-story-ring add-ring">
+                    <span className="social-story-avatar">＋</span>
+                  </span>
+                  <span className="social-story-label">Your story</span>
+                </summary>
+                <form className="social-story-form-popover" onSubmit={createStory}>
+                  <input aria-label="Write a story" maxLength={500} value={storyBody} onChange={event => setStoryBody(event.target.value)} placeholder="Add a short text story…" autoFocus />
+                  <button type="submit" disabled={busy || !storyBody.trim()}>Add</button>
+                </form>
+              </details>
+              {stories.map(story => (
+                <div key={story.id} className="social-story-circle" title={`${story.author.displayName}: ${story.body} (Expires ${new Date(story.expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })})`}>
+                  <span className="social-story-ring gradient-ring">
+                    <span className="social-story-avatar">{story.author.displayName.slice(0, 1).toUpperCase()}</span>
+                  </span>
+                  <span className="social-story-label">{story.author.displayName.split(' ')[0]}</span>
+                </div>
+              ))}
+            </div>
+            {stories.length ? (
+              <div className="social-story-list">
+                {stories.map(story => (
+                  <article key={story.id}>
+                    <strong>{story.author.displayName}</strong>
+                    <p>{story.body}</p>
+                    <small>Expires {new Date(story.expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</small>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="social-empty-inline">No active stories yet. Share a small moment with your followers.</p>
+            )}
           </section>
 
           <div className="social-feed-head"><div><p className="eyebrow">YOUR COMMUNITY</p><h2>{mode === 'saved' ? 'Saved posts' : 'The feed'}</h2></div>

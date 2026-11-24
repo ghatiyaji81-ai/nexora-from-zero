@@ -415,30 +415,63 @@ export function ConnectWorkspace({ user }: { user: ConnectUser }) {
             <header className="connect-chat-header">
               <button className="connect-back-mobile" type="button" onClick={() => setMobileChatOpen(false)} aria-label="Back to conversations">‹</button>
               <Avatar name={current.type === 'group' ? current.name : peer?.name ?? current.name} online={current.type === 'direct' && peer?.online} image={current.avatarFileId ? `/api/connect/attachments/${current.avatarFileId}` : peer?.avatarUrl} />
-              <div className="connect-chat-title"><strong>{current.name}</strong><span>{typingIds.length ? 'typing…' : current.type === 'group' ? `${current.memberCount} members · ${current.description || 'Group conversation'}` : peer?.online ? 'Active now' : 'Private conversation'}</span></div>
+              <div className="connect-chat-title">
+                <strong>{current.name}</strong>
+                <span>
+                  {typingIds.length > 0 ? (
+                    <span className="typing-indicator">
+                      typing
+                      <span className="typing-dots">
+                        <span />
+                        <span />
+                        <span />
+                      </span>
+                    </span>
+                  ) : current.type === 'group' ? (
+                    `${current.memberCount} members · ${current.description || 'Group conversation'}`
+                  ) : peer?.online ? (
+                    'Active now'
+                  ) : (
+                    'Private conversation'
+                  )}
+                </span>
+              </div>
               <div className="connect-chat-actions"><button type="button" title="Search this conversation" onClick={() => { setSearch(current.name); }}>⌕</button><button type="button" title="Shared media" onClick={() => void openGallery()}>▧</button>{current.type === 'group' && <button type="button" title="Group details" onClick={() => void openGroupInfo()}>ⓘ</button>}</div>
             </header>
             {error && <div className="connect-error" role="alert"><span>{error}</span><button type="button" onClick={() => setError('')} aria-label="Dismiss">×</button></div>}
             <div className="connect-message-scroll" aria-live="polite">
               <div className="connect-date-divider"><span>MESSAGES ARE PRIVATE TO THIS CONVERSATION</span></div>
               {hasOlderMessages && <button className="connect-load-older" type="button" disabled={messageLoading} onClick={() => void loadOlderMessages()}>{messageLoading ? 'Loading…' : 'Load earlier messages'}</button>}
-              {messageLoading && messages.length === 0 ? <div className="connect-chat-state">Opening conversation…</div> : currentMessages.length === 0 ? <div className="connect-empty-chat"><span>✳</span><strong>This is the beginning.</strong><p>Send a message to get the conversation moving.</p></div> : currentMessages.map(message => {
+              {messageLoading && messages.length === 0 ? <div className="connect-chat-state">Opening conversation…</div> : currentMessages.length === 0 ? <div className="connect-empty-chat"><span>✳</span><strong>This is the beginning.</strong><p>Send a message to get the conversation moving.</p></div> : currentMessages.map((message, index) => {
                 const own = message.senderId === user.id;
                 const replied = messages.find(item => item.id === message.replyTo);
                 const reactions = [...new Set(message.reactions.map(item => item.emoji))];
-                return <article key={message.id} className={`connect-message-row${own ? ' own' : ''}`}>
-                  {!own && current.type === 'group' && <span className="connect-message-sender">{current.members.find(member => member.id === message.senderId)?.name ?? 'Member'}</span>}
-                  {replied && <button className={`connect-reply-preview${own ? ' own' : ''}`} type="button" onClick={() => document.getElementById(`message-${replied.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}><strong>↳ {replied.senderId === user.id ? 'You' : current.members.find(member => member.id === replied.senderId)?.name ?? 'Member'}</strong><span>{replied.body || 'Attachment'}</span></button>}
-                  <div id={`message-${message.id}`} className={`connect-bubble${own ? ' own' : ''}`}>
-                    {message.body && <p>{message.body}</p>}
-                    {message.attachments.map(item => <AttachmentView key={item.fileId} item={item} />)}
-                    <footer><time>{timeLabel(message.createdAt)}</time>{message.editedAt && <small>edited</small>}{own && <MessageStatus message={message} userId={user.id} />}</footer>
-                    <div className="connect-message-tools"><button type="button" title="Reply" onClick={() => { setReply(message); setEdit(null); }}>↩</button><button type="button" title="Add a reaction" onClick={() => setReactionMenuId(id => id === message.id ? '' : message.id)}>☺</button>{own && <button type="button" title="Edit" onClick={() => { setEdit(message); setReply(null); setDraft(message.body); }}>✎</button>}<button type="button" title="Delete for me" onClick={() => void runMessageAction(message, 'delete-self')}>⌫</button>{(own || (current.type === 'group' && current.adminIds.includes(user.id))) && <button type="button" title="Delete for everyone" onClick={() => void runMessageAction(message, 'delete-everyone')}>×</button>}</div>
-                    {reactionMenuId === message.id && <div className="connect-reaction-picker" aria-label="Choose a reaction">{['👍', '❤️', '😂', '🎉'].map(emoji => <button type="button" key={emoji} onClick={() => { setReactionMenuId(''); void runMessageAction(message, 'react', { emoji }); }}>{emoji}</button>)}</div>}
-                    {reactions.length > 0 && <div className="connect-reactions">{reactions.map(emoji => <button type="button" key={emoji} onClick={() => void runMessageAction(message, 'react', { emoji })}>{emoji} {message.reactions.filter(reaction => reaction.emoji === emoji).length}</button>)}</div>}
-                  </div>
-                </article>;
+                const prev = currentMessages[index - 1];
+                const msgDate = new Date(message.createdAt).toDateString();
+                const showDateSep = !prev || new Date(prev.createdAt).toDateString() !== msgDate;
+                return <div key={message.id} className="connect-message-block">
+                  {showDateSep && <div className="connect-date-divider"><span>{new Date(message.createdAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</span></div>}
+                  <article className={`connect-message-row${own ? ' own' : ''}`}>
+                    {!own && current.type === 'group' && <span className="connect-message-sender">{current.members.find(member => member.id === message.senderId)?.name ?? 'Member'}</span>}
+                    {replied && <button className={`connect-reply-preview${own ? ' own' : ''}`} type="button" onClick={() => document.getElementById(`message-${replied.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}><strong>↳ {replied.senderId === user.id ? 'You' : current.members.find(member => member.id === replied.senderId)?.name ?? 'Member'}</strong><span>{replied.body || 'Attachment'}</span></button>}
+                    <div id={`message-${message.id}`} className={`connect-bubble${own ? ' own' : ''}`}>
+                      {message.body && <p>{message.body}</p>}
+                      {message.attachments.map(item => <AttachmentView key={item.fileId} item={item} />)}
+                      <footer><time>{timeLabel(message.createdAt)}</time>{message.editedAt && <small>edited</small>}{own && <MessageStatus message={message} userId={user.id} />}</footer>
+                      <div className="connect-message-tools"><button type="button" title="Reply" onClick={() => { setReply(message); setEdit(null); }}>↩</button><button type="button" title="Add a reaction" onClick={() => setReactionMenuId(id => id === message.id ? '' : message.id)}>☺</button>{own && <button type="button" title="Edit" onClick={() => { setEdit(message); setReply(null); setDraft(message.body); }}>✎</button>}<button type="button" title="Delete for me" onClick={() => void runMessageAction(message, 'delete-self')}>⌫</button>{(own || (current.type === 'group' && current.adminIds.includes(user.id))) && <button type="button" title="Delete for everyone" onClick={() => void runMessageAction(message, 'delete-everyone')}>×</button>}</div>
+                      {reactionMenuId === message.id && <div className="connect-reaction-picker" aria-label="Choose a reaction">{['👍', '❤️', '😂', '🎉'].map(emoji => <button type="button" key={emoji} onClick={() => { setReactionMenuId(''); void runMessageAction(message, 'react', { emoji }); }}>{emoji}</button>)}</div>}
+                      {reactions.length > 0 && <div className="connect-reactions">{reactions.map(emoji => <button type="button" key={emoji} onClick={() => void runMessageAction(message, 'react', { emoji })}>{emoji} {message.reactions.filter(reaction => reaction.emoji === emoji).length}</button>)}</div>}
+                    </div>
+                  </article>
+                </div>;
               })}
+              {typingIds.length > 0 && (
+                <div className="connect-message-row">
+                  <div className="connect-bubble connect-typing-bubble">
+                    <span className="typing-dots"><span /><span /><span /></span>
+                  </div>
+                </div>
+              )}
               <div ref={bottomRef} />
             </div>
             {(reply || edit) && <div className="connect-compose-context"><span>{edit ? 'Editing your message' : `Replying to ${reply?.senderId === user.id ? 'your message' : current.members.find(member => member.id === reply?.senderId)?.name ?? 'member'}`}</span><small>{(edit ? edit.body : reply?.body) || 'Attachment'}</small><button type="button" onClick={() => { setReply(null); setEdit(null); setDraft(''); }}>×</button></div>}

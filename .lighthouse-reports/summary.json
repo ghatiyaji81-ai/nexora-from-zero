@@ -1,0 +1,182 @@
+[
+  {
+    "route": "Overview",
+    "preset": "desktop",
+    "theme": "light",
+    "verifiedTheme": "light",
+    "performance": 99,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "cls": 0.038
+  },
+  {
+    "route": "Overview",
+    "preset": "desktop",
+    "theme": "warm",
+    "verifiedTheme": "warm",
+    "performance": 98,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "cls": 0.077
+  },
+  {
+    "route": "Overview",
+    "preset": "desktop",
+    "theme": "dark",
+    "verifiedTheme": "dark",
+    "performance": 98,
+    "accessibility": 97,
+    "bestPractices": 100,
+    "cls": 0.078
+  },
+  {
+    "route": "Connect",
+    "preset": "desktop",
+    "theme": "light",
+    "verifiedTheme": "light",
+    "performance": 100,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Connect",
+    "preset": "desktop",
+    "theme": "warm",
+    "verifiedTheme": "warm",
+    "performance": 100,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Connect",
+    "preset": "desktop",
+    "theme": "dark",
+    "verifiedTheme": "dark",
+    "performance": 100,
+    "accessibility": 96,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Build",
+    "preset": "desktop",
+    "theme": "light",
+    "verifiedTheme": "light",
+    "performance": 100,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Build",
+    "preset": "desktop",
+    "theme": "warm",
+    "verifiedTheme": "warm",
+    "performance": 100,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Build",
+    "preset": "desktop",
+    "theme": "dark",
+    "verifiedTheme": "dark",
+    "performance": 100,
+    "accessibility": 96,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Overview",
+    "preset": "mobile",
+    "theme": "light",
+    "verifiedTheme": "light",
+    "performance": 78,
+    "accessibility": 95,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Overview",
+    "preset": "mobile",
+    "theme": "warm",
+    "verifiedTheme": "warm",
+    "performance": 81,
+    "accessibility": 95,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Overview",
+    "preset": "mobile",
+    "theme": "dark",
+    "verifiedTheme": "dark",
+    "performance": 69,
+    "accessibility": 92,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Connect",
+    "preset": "mobile",
+    "theme": "light",
+    "verifiedTheme": "light",
+    "performance": 91,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Connect",
+    "preset": "mobile",
+    "theme": "warm",
+    "verifiedTheme": "warm",
+    "performance": 93,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Connect",
+    "preset": "mobile",
+    "theme": "dark",
+    "verifiedTheme": "dark",
+    "performance": 92,
+    "accessibility": 96,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Build",
+    "preset": "mobile",
+    "theme": "light",
+    "verifiedTheme": "light",
+    "performance": 91,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Build",
+    "preset": "mobile",
+    "theme": "warm",
+    "verifiedTheme": "warm",
+    "performance": 91,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "cls": 0
+  },
+  {
+    "route": "Build",
+    "preset": "mobile",
+    "theme": "dark",
+    "verifiedTheme": "dark",
+    "performance": 93,
+    "accessibility": 96,
+    "bestPractices": 100,
+    "cls": 0
+  }
+]

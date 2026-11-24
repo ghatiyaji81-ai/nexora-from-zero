@@ -55,6 +55,7 @@ export function DiscoverDashboard({ displayName }: { displayName: string }) {
   const aiAbort = useRef<AbortController | null>(null);
 
   const activeCollections = useMemo(() => collections.filter(collection => !collection.archived), [collections]);
+  const activeFilterCount = (exactPhrase ? 1 : 0) + (sort !== 'relevance' ? 1 : 0) + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0) + (selectedCollection ? 1 : 0);
   const searchEnabled = query.trim().length >= 2 && !busy;
   const canAskThink = Boolean(providers?.think.configured && (selectedHits.length || providers.webSearch.configured)) && !busy;
 
@@ -423,13 +424,20 @@ export function DiscoverDashboard({ displayName }: { displayName: string }) {
                   <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Ask a question or find a phrase in your documents…" aria-label="Search your documents" minLength={2} maxLength={240} />
                   <button className="discover-button" type="submit" disabled={!searchEnabled}>{busy ? 'Searching…' : 'Search library'}</button>
                 </label>
-                <div className="discover-filters">
-                  <label className="discover-check"><input type="checkbox" checked={exactPhrase} onChange={event => setExactPhrase(event.target.checked)} /> Exact phrase</label>
-                  <label>Sort <select value={sort} onChange={event => setSort(event.target.value as 'relevance' | 'recent')}><option value="relevance">Relevance</option><option value="recent">Newest</option></select></label>
-                  <label>From <input type="date" value={dateFrom} onChange={event => setDateFrom(event.target.value)} /></label>
-                  <label>To <input type="date" value={dateTo} onChange={event => setDateTo(event.target.value)} /></label>
-                  <label>Save to <select value={selectedCollection} onChange={event => setSelectedCollection(event.target.value)}><option value="">Uncollected</option>{activeCollections.map(collection => <option key={collection.id} value={collection.id}>{collection.title}</option>)}</select></label>
-                </div>
+                <details className="discover-filters-collapsible">
+                  <summary className="discover-filters-summary">
+                    <span>Filters</span>
+                    {activeFilterCount > 0 && <span className="discover-filters-badge">{activeFilterCount}</span>}
+                    <span className="discover-filters-chevron" aria-hidden="true">⌄</span>
+                  </summary>
+                  <div className="discover-filters">
+                    <label className="discover-check"><input type="checkbox" checked={exactPhrase} onChange={event => setExactPhrase(event.target.checked)} /> Exact phrase</label>
+                    <label>Sort <select value={sort} onChange={event => setSort(event.target.value as 'relevance' | 'recent')}><option value="relevance">Relevance</option><option value="recent">Newest</option></select></label>
+                    <label>From <input type="date" value={dateFrom} onChange={event => setDateFrom(event.target.value)} /></label>
+                    <label>To <input type="date" value={dateTo} onChange={event => setDateTo(event.target.value)} /></label>
+                    <label>Save to <select value={selectedCollection} onChange={event => setSelectedCollection(event.target.value)}><option value="">Uncollected</option>{activeCollections.map(collection => <option key={collection.id} value={collection.id}>{collection.title}</option>)}</select></label>
+                  </div>
+                </details>
               </form>
 
               {results.length > 0 ? <div className="discover-results">

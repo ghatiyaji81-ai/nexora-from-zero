@@ -1,6 +1,33 @@
+import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
-import { FocusTimer } from '@/components/focus-timer';
+import { BentoGrid } from '@/components/bento-grid';
+import { PreviewLink } from '@/components/preview-link';
 import { productMap } from '@/lib/product-map';
+import { getWorkspaceStatus } from '@/lib/workspace-status';
+
+const moduleHrefs: Record<string, string> = {
+  FOUNDATION: '/workspace',
+  CONNECT: '/connect',
+  SOCIAL: '/social',
+  THINK: '/think',
+  SPEAK: '/speak',
+  CREATE: '/create',
+  BUILD: '/build',
+  DISCOVER: '/discover',
+  PRODUCTIVITY: '#roadmap',
+};
+
+const moduleActions: Record<string, { label: string; href: string }> = {
+  FOUNDATION: { label: 'Open space', href: '/workspace' },
+  CONNECT: { label: 'Open Connect', href: '/connect' },
+  SOCIAL: { label: 'Open Social', href: '/social' },
+  THINK: { label: 'Open Think', href: '/think' },
+  SPEAK: { label: 'Open Speak', href: '/speak' },
+  CREATE: { label: 'Open Create', href: '/create' },
+  BUILD: { label: 'Open Build', href: '/build' },
+  DISCOVER: { label: 'Open Discover', href: '/discover' },
+  PRODUCTIVITY: { label: 'View roadmap', href: '#roadmap' },
+};
 
 export default function HomePage() {
   return (
@@ -18,22 +45,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="workspace-grid" aria-label="Workspace overview">
-          <FocusTimer />
-
-          <article className="welcome-card" aria-labelledby="welcome-card-title">
-            <div className="welcome-card-topline">
-              <span className="card-kicker">THE NEXORA PRINCIPLE</span>
-              <span className="principle-mark" aria-hidden="true">N</span>
-            </div>
-            <h2 id="welcome-card-title">One place.<br />A little more clarity.</h2>
-            <p>Start with the work in front of you. The rest of the workspace will take shape around real, useful tools.</p>
-            <div className="welcome-card-footer">
-              <span className="status-led" />
-              <span>Built in the open, one useful piece at a time</span>
-            </div>
-          </article>
-        </section>
+        {/* Phase 2, Item 2: Customizable Bento-Grid Dashboard */}
+        <BentoGrid />
 
         <section className="map-section" id="roadmap" aria-labelledby="map-title">
           <div className="section-heading">
@@ -45,18 +58,42 @@ export default function HomePage() {
           </div>
 
           <div className="module-grid">
-            {productMap.map((module, index) => (
-              <article className={`module-item${module.status === 'In progress' ? ' module-item-active' : ''}`} key={module.name}>
-                <div className="module-item-heading">
-                  <span className="module-index">0{index + 1}</span>
-                  <span className={`module-state${module.status === 'In progress' ? ' module-state-active' : ''}`}>
-                    <span />{module.status}
-                  </span>
-                </div>
-                <h3>{module.name}</h3>
-                <p>{module.summary}</p>
-              </article>
-            ))}
+            {productMap.map((module, index) => {
+              const href = moduleHrefs[module.name] || '#roadmap';
+              const action = moduleActions[module.name] || { label: 'Open space', href };
+              const className = `module-item${module.status === 'In progress' ? ' module-item-active' : ''}`;
+              const content = (
+                <>
+                  <div className="module-item-heading">
+                    <span className="module-index">0{index + 1}</span>
+                    <span className={`module-state${module.status === 'In progress' ? ' module-state-active' : ''}`}>
+                      <span />{module.status}
+                    </span>
+                  </div>
+                  <h3>{module.name}</h3>
+                  <p>{module.summary}</p>
+                </>
+              );
+              return (
+                <PreviewLink
+                  key={module.name}
+                  href={href}
+                  className={className}
+                  data-module={module.name.toLowerCase()}
+                  placement="top"
+                  preview={{
+                    title: module.name,
+                    description: module.summary,
+                    status: getWorkspaceStatus(module.name).statusText,
+                    actionLabel: action.label,
+                    actionHref: action.href,
+                    variant: module.name.toLowerCase(),
+                  }}
+                >
+                  {content}
+                </PreviewLink>
+              );
+            })}
           </div>
         </section>
 
